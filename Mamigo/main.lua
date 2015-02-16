@@ -254,7 +254,7 @@ local function menuInit(parent, settings)
 			y = createMenuCheckbox(body, y, "Aventures d'events", settings, "adventure_all")
 			return y
 		end)
-
+		
 		y = createSubmenu(body, y, "Trier par :", function (body, y)
 			local sort = {}
 			y = createMenuRadioButton(body, y, "-Energie", settings, "sort", "stamina", sort)
@@ -264,15 +264,8 @@ local function menuInit(parent, settings)
 			return y
 		end)
 
-		y = createSubmenu(body, y, "Prioriser l'xp par :", function (body, y)
-			local sort = {}
-			y = createMenuRadioButton(body, y, "-L'energie", settings, "sort_exp", "stamina", sort)
-			y = createMenuRadioButton(body, y, "-L'affinite", settings, "sort_exp", "stat", sort)
-			y = createMenuRadioButton(body, y, "-Le level (desc)", settings, "sort_exp", "level", sort)
-			y = createMenuRadioButton(body, y, "-Le Level (asc)", settings, "sort_exp", "levelasc", sort)
-			return y
-		end)
-
+		y = createMenuSeparator(body, y)
+		
 		y = createSubmenu(body, y, "Reserver de l'energie pour :", function (body, y)
 			local stamina = {}
 			y = createMenuRadioButton(body, y, "-Rien", settings, "stamina", 0, stamina)
@@ -283,6 +276,8 @@ local function menuInit(parent, settings)
 			return y
 		end)
 
+		y = createMenuSeparator(body, y)
+		
 		y = createSubmenu(body, y, "Utiliser lvl 25 pour recuperer :", function (body, y)
 			y = createMenuCheckbox(body, y, "-Artefact", settings.max, "artifact")
 			y = createMenuCheckbox(body, y, "-Dimension", settings.max, "dimension")
@@ -293,19 +288,11 @@ local function menuInit(parent, settings)
 			return y
 		end)
 
-		y = createMenuCheckbox(body, y, "Envoyer des lvl 1", settings, "min")
-
-		y = createSubmenu(body, y, "Detruire les object de dimention :", function (body, y)
-			local dimension = {}
-			y = createMenuRadioButton(body, y, "-Aucun", settings, "dimension", "none", dimension)
-			y = createMenuRadioButton(body, y, "-Les blocs", settings, "dimension", "block", dimension)
-			y = createMenuRadioButton(body, y, "-Les commums", settings, "dimension", "common", dimension)
-			y = createMenuRadioButton(body, y, "-Tous", settings, "dimension", "all", dimension)
-			return y
-		end)
-
+		y = createMenuSeparator(body, y)
+		
 		y = createMenuCheckbox(body, y, "Flash", settings, "flash")
-
+		y = createMenuCheckbox(body, y, "Envoyer des lvl 1", settings, "min")
+		
 		return y
 	end)
 	return window
@@ -394,10 +381,9 @@ local function settingsInit()
 	if MamigoGlobal.settings == nil then MamigoGlobal.settings = {} end
 	if MamigoGlobal.settings.adventure == nil then MamigoGlobal.settings.adventure = "experience" end
 	if MamigoGlobal.settings.sort == nil then MamigoGlobal.settings.sort = "stat" end
-	if MamigoGlobal.settings.sort_exp == nil then MamigoGlobal.settings.sort_exp = "stamina" end
 	if MamigoGlobal.settings.stamina == nil then MamigoGlobal.settings.stamina = 0 end
 	if MamigoGlobal.settings.max == nil then MamigoGlobal.settings.max = {} end
-	if MamigoGlobal.settings.dimension == nil then MamigoGlobal.settings.dimension = "none" end
+	if MamigoGlobal.settings.flash == nil then MamigoGlobal.settings.flash = false end
 	if MamigoSettings == nil then MamigoSettings = {} end
 	if MamigoSettings.window == nil then
 		MamigoSettings.window = {
@@ -410,50 +396,6 @@ end
 --#################################################################################################################################
 			---CORE----
 --#################################################################################################################################
-
-local dimensionItem = nil
-local dimensionOption = nil
-local function dimensionMatch()
-	if not Inspect.Queue.Status("global") then
-		return nil
-	end
-
-	-- Checking items is slow, so don't do it if nothing has changed
-	if dimensionOption == MamigoGlobal.settings.dimension then
-		return dimensionItem
-	end
-	dimensionItem = nil
-	dimensionOption = MamigoGlobal.settings.dimension
-
-	local items = Inspect.Item.Detail(Utility.Item.Slot.Inventory())
-	if items == nil then
-		return nil
-	end
-
-	local match = "dimension"
-	local common = true
-	if dimensionOption == "none" then
-		return nil
-	elseif dimensionOption == "block" then
-		match = "dimension block"
-		common = true
-	elseif dimensionOption == "common" then
-		common = true
-	elseif dimensionOption == "all" then
-		common = false
-	else
-		return nil
-	end
-
-	for k, v in pairs(items) do
-		if not v.lootable and (not common or v.rarity == nil) and startsWith(v.category, match) then
-			dimensionItem = v
-			return v
-		end
-	end
-
-	return nil
-end
 
 local statNames = {
 	"Air",
@@ -475,10 +417,6 @@ local function minionMatch(adventure, minion)
 	local sort = MamigoGlobal.settings.sort
 	local max = MamigoGlobal.settings.max[adventure.reward]
 	local min = MamigoGlobal.settings.min
-	if adventure.reward == "experience" then
-		sort = MamigoGlobal.settings.sort_exp
-		max = false
-	end
 
 	if not min and minion.level == 1 then
 		return 0
@@ -552,8 +490,7 @@ local function minionReady()
 		mamigoEnable(true)
 		return
 	end
-
-	mamigoEnable(dimensionMatch() ~= nil)
+	mamigoEnable(false)
 end
 
 local function minionReadyTimer()
@@ -563,8 +500,6 @@ local function minionReadyTimer()
 end
 
 local function itemReady()
-	-- force a dimension item check
-	dimensionOption = nil
 	minionReady()
 end
 
@@ -632,14 +567,6 @@ local function minionGo()
 	end
 
 	if slot <= 0 then
-		local item = dimensionMatch()
-		if item ~= nil then
-			print("Destroying " .. item.name)
-			Command.Item.Destroy(item.id)
-			dimensionOption = nil
-			return
-		end
-
 		print("No available slots")
 		return
 	end
