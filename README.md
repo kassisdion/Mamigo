@@ -1,0 +1,2 @@
+# Mamigo
+Rift addon
