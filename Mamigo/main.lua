@@ -443,7 +443,7 @@ local function minionMatch(adventure, minion)
 		return 0
 	end
 
-	local stat = 1
+	local stat = 0
 	for i, name in ipairs(statNames) do
 		if adventure["stat" .. name] and minion["stat" .. name] ~= nil then
 			if sort == "stamina" then
@@ -455,20 +455,21 @@ local function minionMatch(adventure, minion)
 			elseif sort == "levelasc" then
 				stat = 1000 - minion.level
 			end
-			
-			--common = blanc / uncommon = vert / rare = bleu / epic = violet
-			if adventure.reward == "experience" then
-				if minion.rarity == "common" then
-					stat = stat * 2 * 2
-				elseif minion.rarity == "uncommon" then
-					stat = stat * 1
-				elseif minion.rarity == "rare" then
-					stat = stat * 3
-				elseif minion.rarity == "epic" then
-					stat = stat * 50
-				end
-			end
-			
+		end
+	end
+
+	--common = blanc / uncommon = vert / rare = bleu / epic = violet
+	if adventure.reward == "experience" then
+		if stat == 0 then
+			stat = 1
+		elseif minion.rarity == "common" then
+			stat = stat * 2 * 2
+		elseif minion.rarity == "uncommon" then
+			stat = stat * 1
+		elseif minion.rarity == "rare" then
+			stat = stat * 3
+		elseif minion.rarity == "epic" then
+			stat = stat * 50
 		end
 	end
 	return stat
