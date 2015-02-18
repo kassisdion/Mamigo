@@ -443,7 +443,7 @@ local function minionMatch(adventure, minion)
 		return 0
 	end
 
-	local stat = 0
+	local stat = 1
 	for i, name in ipairs(statNames) do
 		if adventure["stat" .. name] and minion["stat" .. name] ~= nil then
 			if sort == "stamina" then
