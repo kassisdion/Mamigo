@@ -52,6 +52,9 @@ local function dragUp(dragState, frame, event, ...)
 end
 
 local function dragMove(dragState, frame, event, x, y)
+	if MamigoGlobal.settings.locked then
+		return
+	end
 	if dragState.dragging then
 		dragState.variable.x = x + dragState.dx
 		dragState.variable.y = y + dragState.dy
@@ -293,6 +296,10 @@ local function menuInit(parent, settings)
 		y = createMenuCheckbox(body, y, "Flash", settings, "flash")
 		y = createMenuCheckbox(body, y, "Envoyer des lvl 1", settings, "min")
 		
+		y = createMenuSeparator(body, y)
+		y = createMenuCheckbox(body, y, "Verouiller", settings, "locked")
+		
+		
 		return y
 	end)
 	return window
@@ -384,6 +391,8 @@ local function settingsInit()
 	if MamigoGlobal.settings.stamina == nil then MamigoGlobal.settings.stamina = 0 end
 	if MamigoGlobal.settings.max == nil then MamigoGlobal.settings.max = {} end
 	if MamigoGlobal.settings.flash == nil then MamigoGlobal.settings.flash = false end
+	if MamigoGlobal.settings.locked == nil then MamigoGlobal.settings.locked = false end
+	
 	if MamigoSettings == nil then MamigoSettings = {} end
 	if MamigoSettings.window == nil then
 		MamigoSettings.window = {
@@ -447,11 +456,12 @@ local function minionMatch(adventure, minion)
 				stat = 1000 - minion.level
 			end
 			
+			--common = blanc / uncommon = vert / rare = bleu / epic = violet
 			if adventure.reward == "experience" then
 				if minion.rarity == "common" then
-					stat = stat * 1
+					stat = stat * 2 * 2
 				elseif minion.rarity == "uncommon" then
-					stat = stat * 2
+					stat = stat * 1
 				elseif minion.rarity == "rare" then
 					stat = stat * 3
 				elseif minion.rarity == "epic" then
