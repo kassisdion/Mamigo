@@ -11,5 +11,5 @@ Reprise de l'addon Mamigo et :
 - Possibilité de détruire les object dimentionel enlevé.
 
 ##V1.1 :
--Ajout du bouton "verouiller" permetant de verouiller la fenêtre.
--Modification de l'ago de selection des sbires (blanc > vert quand on xp)
+- Ajout du bouton "verouiller" permetant de verouiller la fenêtre.
+- Modification de l'ago de selection des sbires (blanc > vert quand on xp)
