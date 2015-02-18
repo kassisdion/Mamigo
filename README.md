@@ -9,3 +9,7 @@ Put the "mamigo" folder under your addon folder
 - Modification de l'algorithme de sélection (prise en compte de la couleur du sbire).
 - Mofication de l'interface.
 - Possibilité de détruire les object dimentionel enlevé.
+
+V1.1 :
+-Ajout du bouton "verouiller" permetant de verouiller la fenêtre.
+-Modification de l'ago de selection des sbires (blanc > vert quand on xp)
