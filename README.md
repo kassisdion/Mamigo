@@ -13,3 +13,4 @@ Reprise de l'addon Mamigo et :
 ##V1.1 :
 - Ajout du bouton "verouiller" permetant de verouiller la fenêtre.
 - Modification de l'ago de selection des sbires (blanc > vert quand on xp)
+- Réglage du soucis de "no available minion"
