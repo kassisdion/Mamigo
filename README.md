@@ -12,5 +12,12 @@ Reprise de l'addon Mamigo et :
 
 ##V1.1 :
 - Ajout du bouton "verouiller" permetant de verouiller la fenêtre.
-- Modification de l'ago de selection des sbires (blanc > vert quand on xp)
+- Modification de l'algo de selection des sbires (blanc > vert quand on xp)
 - Réglage du soucis de "no available minion"
+
+##V2.0 :
+- Adieu Mamigo, bienvenue sbire_manager
+- Réorganisation de l'interface
+- Ameilloration de la selection des sbires
+- Ajout de la possibilité de "d'accelerer" les aventures
+- Prépation de la 2.1 : Déstruction des objets dimentionel / Shuffle des aventures

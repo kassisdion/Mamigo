@@ -4,7 +4,7 @@ local boxWidth = 270
 local frameHeight = 20
 local sbireManagerButton = nil
 local updateEnable = 0
-local DEBUG = true
+local DEBUG = false
 local fontSize = 14
 
 --#################################################################################################################################
@@ -405,9 +405,7 @@ local function settingsInit()
 	
 	--temps d'aventure
 	--experience / short / long / aventurine (1mn / 5mn / 8h / 10h )
-	printDebug(SbireManagerGlobal.settings.adventureTime)
 	if SbireManagerGlobal.settings.adventureTime == nil then SbireManagerGlobal.settings.adventureTime = "experience" end
-	printDebug(SbireManagerGlobal.settings.adventureTime)
 	if SbireManagerGlobal.settings.adventureEvent == nil then SbireManagerGlobal.settings.adventureEvent = true end
 	if SbireManagerGlobal.settings.hurry == nil then SbireManagerGlobal.settings.hurry = false end
 	
@@ -618,6 +616,7 @@ local function minionGo()
 		return
 	end
 
+	--on cherche une aventure
 	local match
 	if SbireManagerGlobal.settings.adventureEvent then
 		match = adventureMatchAll[SbireManagerGlobal.settings.adventureTime]
@@ -630,7 +629,14 @@ local function minionGo()
 			return
 		end
 	end
-	print("Aucune aventure ne correspond a vos critere (shuffle=)" .. SbireManagerGlobal.settings.shuffle)
+	
+	--on n'a pas d'aventure
+	if SbireManagerGlobal.settings.shuffle then
+		print("Aucune aventure ne correspond a vos critere, remaniement de l'aventure...")
+		Command.Minion.Shuffle(adventure, "aventurine")
+		minionGo()
+	end
+	print("Aucune aventure ne correspond a vos criteres")
 end
 
 --#################################################################################################################################
@@ -663,3 +669,4 @@ local function main(handle, addonIdentifier)
 end
 
 Command.Event.Attach(Event.Addon.Load.End, main, "main")
+
