@@ -415,7 +415,7 @@ local function settingsInit()
 	
 	--priorisation
 	--energie / stats / lvl_asc / lvl_desc
-	if SbireManagerGlobal.settings.prio == nil then SbireManagerGlobal.settings.prio = "energie" end
+	if SbireManagerGlobal.settings.prio == nil then SbireManagerGlobal.settings.prio = "stats" end
 	
 	--energie minimal
 	--0 / 7 / 10
@@ -473,7 +473,7 @@ local function minionMatch(adventure, minion)
 		return 0
 	end
 		
-	--verifier qu'on a assé d'energie
+	--verifier qu'on a assÃ© d'energie
 	local energiePostAdventure = minion.stamina - adventure.costStamina
 	if (energiePostAdventure < 0) or (energiePostAdventure < SbireManagerGlobal.settings.energieMin) then
 		return 0
