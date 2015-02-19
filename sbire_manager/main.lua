@@ -1,9 +1,11 @@
 local addon, private = ...
-Mamigo = private
 
 local boxWidth = 270
-local mamigoButton = nil
+local frameHeight = 20
+local sbireManagerButton = nil
 local updateEnable = 0
+local DEBUG = true
+local fontSize = 14
 
 --#################################################################################################################################
 			---UTILS---
@@ -29,6 +31,11 @@ local function startsWith(s, start)
 	return string.sub(s, 1, string.len(start)) == start
 end
 
+---------DEBUG---------------------------------------------------------------------------------------------------------------------
+local function printDebug(msg)
+	if DEBUG then print(msg) end
+end
+
 ---------TEXTURE-------------------------------------------------------------------------------------------------------------------
 local function createTexture(parent, x, y, w, h, texture, layout)
 	local frame = UI.CreateFrame("Texture", "", parent)
@@ -52,15 +59,13 @@ local function dragUp(dragState, frame, event, ...)
 end
 
 local function dragMove(dragState, frame, event, x, y)
-	if MamigoGlobal.settings.locked then
+	if SbireManagerGlobal.settings.locked then
 		return
 	end
 	if dragState.dragging then
 		dragState.variable.x = x + dragState.dx
 		dragState.variable.y = y + dragState.dy
-		if not mamigoButton:GetEnabled() then
-			dragState.window:SetPoint("TOPLEFT", UIParent, "TOPLEFT", dragState.variable.x, dragState.variable.y)
-		end		
+		dragState.window:SetPoint("TOPLEFT", UIParent, "TOPLEFT", dragState.variable.x, dragState.variable.y)
 	end
 end
 
@@ -96,14 +101,14 @@ local function createMenuFrame(parent, y)
 	local frame = UI.CreateFrame("Frame", "", parent)
 	frame:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, y)
 	frame:SetWidth(boxWidth)
-	frame:SetHeight(20)
+	frame:SetHeight(frameHeight)
 	return frame
 end
 
 local function menuToggle(align, window)
 	if align:GetTop() > UIParent:GetHeight() / 2 then
 		window:ClearPoint("TOPCENTER")
-		window:SetPoint("BOTTOMCENTER", align, "TOPCENTER", -1 * window:GetWidth(), 20)
+		window:SetPoint("BOTTOMCENTER", align, "TOPCENTER", -1 * window:GetWidth(), frameHeight)
 	else
 		window:ClearPoint("BOTTOMCENTER")
 		window:SetPoint("TOPCENTER", align, "BOTTOMCENTER", (-1 * window:GetWidth()) / 2, 0)
@@ -114,18 +119,24 @@ end
 local function createText(parent, x, y, text)
 	local frame = UI.CreateFrame("Text", "", parent)
 	frame:SetPoint("TOPLEFT", parent, "TOPLEFT", x, y)
-	frame:SetFontSize(14)
+	frame:SetFontSize(fontSize)
 	frame:SetText(text)
 	return frame
 end
 
+local function createTextWithoutFrame(parent, y, text)
+	local frame = createMenuFrame(parent, y)
+	createText(frame, 38, 0, text)
+	return y + frameHeight
+end
+	
 local function createSubmenu(parent, y, text, cb)
 	local frame = createMenuFrame(parent, y)
 	createText(frame, 38, 0, text)
 
 	local child = createMenu(frame, cb)
 	child:SetVisible(false)
-	child:SetPoint("TOPLEFT", frame, "TOPRIGHT", -10, -20)
+	child:SetPoint("TOPLEFT", frame, "TOPRIGHT", -10, -frameHeight)
 	frame:EventAttach(Event.UI.Input.Mouse.Cursor.In, function (...)
 		if parent.submenu ~= nil then
 			parent.submenu:SetVisible(false)
@@ -133,7 +144,7 @@ local function createSubmenu(parent, y, text, cb)
 		parent.submenu = child
 		child:SetVisible(true)
 	end, "submenuCursorIn")
-	return y + 20
+	return y + frameHeight
 end
 
 local function hideSubmenu(menu, menuitem)
@@ -206,7 +217,7 @@ local function createMenuCheckbox(parent, y, text, settings, key)
 	end, "menuCheckboxChange")
 	hideSubmenu(parent, frame)
 	hideSubmenu(parent, control.text)
-	return y + 20
+	return y + frameHeight
 end
 
 local function createMenuRadioButton(parent, y, text, settings, key, value, group)
@@ -224,20 +235,20 @@ local function createMenuRadioButton(parent, y, text, settings, key, value, grou
 	end, "menuRadioButtonChange")
 	hideSubmenu(parent, frame)
 	group[value] = control
-	return y + 20
+	return y + frameHeight
 end
 
 local function createMenuSeparator(parent, y)
-	local control = createTexture(parent, 5, y + 10, 190, 5, "img/tooltip-separator.png", "TOPLEFT")
+	local control = createTexture(parent, 5, y + 10, 270, 5, "img/tooltip-separator.png", "TOPLEFT")
 	hideSubmenu(parent, control)
-	return y + 20
+	return y + frameHeight
 end
 
 local function createMenuHeader(parent, y, text)
 	local frame = createMenuFrame(parent, y)
-	createText(frame, 20, 0, text)
+	createText(frame, frameHeight, 0, text)
 	hideSubmenu(parent, frame)
-	return y + 20
+	return y + frameHeight
 end
 
 --#################################################################################################################################
@@ -247,58 +258,62 @@ end
 ---------INIT MENU------------------------------------------------------------------------------------------------------------------
 local function menuInit(parent, settings)
 	local window = createMenu(parent, function (body, y)
+	
+		--adventure settings
 		y = createSubmenu(body, y, "Temps d'aventure : ", function (body, y)
-			local adventure = {}
-			y = createMenuRadioButton(body, y, "-1mn", settings, "adventure", "experience", adventure)
-			y = createMenuRadioButton(body, y, "-5mn/15mn", settings, "adventure", "short", adventure)
-			y = createMenuRadioButton(body, y, "-8 heures", settings, "adventure", "long", adventure)
-			y = createMenuRadioButton(body, y, "-10 heures", settings, "adventure", "aventurine", adventure)
+			local adventureTime = {}
+			y = createMenuRadioButton(body, y, "-1mn", settings, "adventureTime", "experience", adventureTime)
+			y = createMenuRadioButton(body, y, "-5mn/15mn", settings, "adventureTime", "short", adventureTime)
+			y = createMenuRadioButton(body, y, "-8 heures", settings, "adventureTime", "long", adventureTime)
+			y = createMenuRadioButton(body, y, "-10 heures", settings, "adventureTime", "aventurine", adventureTime)
 			y = createMenuSeparator(body, y)
-			y = createMenuCheckbox(body, y, "Aventures d'events", settings, "adventure_all")
-			return y
-		end)
-		
-		y = createSubmenu(body, y, "Trier par :", function (body, y)
-			local sort = {}
-			y = createMenuRadioButton(body, y, "-Energie", settings, "sort", "stamina", sort)
-			y = createMenuRadioButton(body, y, "-Affinite", settings, "sort", "stat", sort)
-			y = createMenuRadioButton(body, y, "-Level (desc)", settings, "sort", "level", sort)
-			y = createMenuRadioButton(body, y, "-Level (asc)", settings, "sort", "levelasc", sort)
-			return y
-		end)
-
-		y = createMenuSeparator(body, y)
-		
-		y = createSubmenu(body, y, "Reserver de l'energie pour :", function (body, y)
-			local stamina = {}
-			y = createMenuRadioButton(body, y, "-Rien", settings, "stamina", 0, stamina)
-			y = createMenuRadioButton(body, y, "-Faire des 8 heures", settings, "stamina", 7, stamina)
-			y = createMenuRadioButton(body, y, "-Faire des 10 heures", settings, "stamina", 10, stamina)
+			y = createMenuCheckbox(body, y, "Aventures d'events", settings, "adventureEvent")
 			y = createMenuSeparator(body, y)
-			y = createMenuCheckbox(body, y, "-Seulement pour les lvl 25", settings, "stamina_max_only")
+			y = createMenuCheckbox(body, y, "Accelerer (consome de l'aventurine)", settings, "hurry")
 			return y
 		end)
-
-		y = createMenuSeparator(body, y)
 		
-		y = createSubmenu(body, y, "Utiliser lvl 25 pour recuperer :", function (body, y)
-			y = createMenuCheckbox(body, y, "-Artefact", settings.max, "artifact")
-			y = createMenuCheckbox(body, y, "-Dimension", settings.max, "dimension")
-			y = createMenuCheckbox(body, y, "-Diplomacie", settings.max, "diplomacy")
-			y = createMenuCheckbox(body, y, "-Recolte", settings.max, "harvest")
-			y = createMenuCheckbox(body, y, "-Chasse", settings.max, "hunt")
-			y = createMenuCheckbox(body, y, "-Materiel", settings.max, "material")
+		y = createSubmenu(body, y, "Type d'aventure :", function (body, y)
+			y = createMenuCheckbox(body, y, "-Artefact", settings.adventureTypeWanted, "artifact")
+			y = createMenuCheckbox(body, y, "-Dimension", settings.adventureTypeWanted, "dimension")
+			y = createMenuCheckbox(body, y, "-Diplomacie", settings.adventureTypeWanted, "diplomacy")
+			y = createMenuCheckbox(body, y, "-Recolte", settings.adventureTypeWanted, "harvest")
+			y = createMenuCheckbox(body, y, "-Chasse", settings.adventureTypeWanted, "hunt")
+			y = createMenuCheckbox(body, y, "-Materiel", settings.adventureTypeWanted, "material")
+			y = createMenuSeparator(body, y)
+			y = createMenuCheckbox(body, y, "Remanier", settings, "shuffle")
 			return y
 		end)
-
+		
+		--Minion settings
 		y = createMenuSeparator(body, y)
 		
-		y = createMenuCheckbox(body, y, "Flash", settings, "flash")
+		y = createSubmenu(body, y, "Prioriser les sbires par :", function (body, y)
+			local prio = {}
+			y = createMenuRadioButton(body, y, "-Energie", settings, "prio", "energie", prio)
+			y = createMenuRadioButton(body, y, "-Affinite", settings, "prio", "stats", prio)
+			y = createMenuRadioButton(body, y, "-Level (asc)", settings, "prio", "level_asc", prio)
+			y = createMenuRadioButton(body, y, "-Level (desc)", settings, "prio", "level_desc", prio)
+			return y
+		end)
+	
+		y = createSubmenu(body, y, "Energie minimal :", function (body, y)
+			local energieMin = {}
+			y = createMenuRadioButton(body, y, "-Aucune", settings, "energieMin", 0, energieMin)
+			y = createMenuRadioButton(body, y, "-Pour faire des 8 heures", settings, "energieMin", 7, energieMin)
+			y = createMenuRadioButton(body, y, "-Pour faire des 10 heures", settings, "energieMin", 10, energieMin)
+			y = createMenuSeparator(body, y)
+			y = createMenuCheckbox(body, y, "-Seulement pour les lvl 25", settings, "energieMinFilter")
+			return y
+		end)
+		
 		y = createMenuCheckbox(body, y, "Envoyer des lvl 1", settings, "min")
-		
+
+		--global settings
 		y = createMenuSeparator(body, y)
-		y = createMenuCheckbox(body, y, "Verouiller", settings, "locked")
 		
+		y = createMenuCheckbox(body, y, "Verouiller la fenetre", settings, "locked")
+		y = createMenuCheckbox(body, y, "Couleur \"flashy\"", settings, "highLight")
 		
 		return y
 	end)
@@ -342,6 +357,7 @@ local function createButton(context)
 		end
 	end, "buttonCursorIn")
 
+
 	frame:EventAttach(Event.UI.Input.Mouse.Cursor.Out, function (...)
 		if frame.state then
 			texture1:SetTexture("Rift", "btn_zoomout_(normal).png.dds")
@@ -371,8 +387,8 @@ local function createButton(context)
 	end
 
 	Command.Event.Attach(Event.System.Update.Begin, function ()
-		if MamigoGlobal.settings.flash then
-			texture3:SetAlpha(math.abs(Inspect.Time.Real() * 20 % 20 - 10) / 10)
+		if SbireManagerGlobal.settings.flash then
+			texture3:SetAlpha(math.abs(Inspect.Time.Real() * frameHeight % frameHeight - 10) / 10)
 		else
 			texture3:SetAlpha(0)
 		end
@@ -384,18 +400,41 @@ end
 
 ---------INIT SAVED VARIABLE-------------------------------------------------------------------------------------------------------
 local function settingsInit()
-	if MamigoGlobal == nil then MamigoGlobal = {} end
-	if MamigoGlobal.settings == nil then MamigoGlobal.settings = {} end
-	if MamigoGlobal.settings.adventure == nil then MamigoGlobal.settings.adventure = "experience" end
-	if MamigoGlobal.settings.sort == nil then MamigoGlobal.settings.sort = "stat" end
-	if MamigoGlobal.settings.stamina == nil then MamigoGlobal.settings.stamina = 0 end
-	if MamigoGlobal.settings.max == nil then MamigoGlobal.settings.max = {} end
-	if MamigoGlobal.settings.flash == nil then MamigoGlobal.settings.flash = false end
-	if MamigoGlobal.settings.locked == nil then MamigoGlobal.settings.locked = false end
+	if SbireManagerGlobal == nil then SbireManagerGlobal = {} end
+	if SbireManagerGlobal.settings == nil then SbireManagerGlobal.settings = {} end
 	
-	if MamigoSettings == nil then MamigoSettings = {} end
-	if MamigoSettings.window == nil then
-		MamigoSettings.window = {
+	--temps d'aventure
+	--experience / short / long / aventurine (1mn / 5mn / 8h / 10h )
+	printDebug(SbireManagerGlobal.settings.adventureTime)
+	if SbireManagerGlobal.settings.adventureTime == nil then SbireManagerGlobal.settings.adventureTime = "experience" end
+	printDebug(SbireManagerGlobal.settings.adventureTime)
+	if SbireManagerGlobal.settings.adventureEvent == nil then SbireManagerGlobal.settings.adventureEvent = true end
+	if SbireManagerGlobal.settings.hurry == nil then SbireManagerGlobal.settings.hurry = false end
+	
+	--type d'aventure
+	if SbireManagerGlobal.settings.adventureTypeWanted == nil then SbireManagerGlobal.settings.adventureTypeWanted = {} end
+	if SbireManagerGlobal.settings.shuffle == nil then SbireManagerGlobal.settings.shuffle = false end
+	
+	--priorisation
+	--energie / stats / lvl_asc / lvl_desc
+	if SbireManagerGlobal.settings.prio == nil then SbireManagerGlobal.settings.prio = "energie" end
+	
+	--energie minimal
+	--0 / 7 / 10
+	if SbireManagerGlobal.settings.energieMin == nil then SbireManagerGlobal.settings.energieMin = 0 end
+	if SbireManagerGlobal.settings.energieMinFilter == nil then SbireManagerGlobal.settings.energieMinFilter = false end
+	
+	--envoyer des lvl
+	if SbireManagerGlobal.settings.sendMin == nil then SbireManagerGlobal.settings.sendMin = false end
+	
+	--parametre
+	if SbireManagerGlobal.settings.highLight == nil then SbireManagerGlobal.settings.hightLight = false end
+	if SbireManagerGlobal.settings.locked == nil then SbireManagerGlobal.settings.locked = false end
+	
+	
+	if SbireManagerSettings == nil then SbireManagerSettings = {} end
+	if SbireManagerSettings.window == nil then
+		SbireManagerSettings.window = {
 			x = math.floor(UIParent:GetWidth() / 4),
 			y = math.floor(UIParent:GetHeight() / 4)
 		}
@@ -423,60 +462,60 @@ local statNames = {
 }
 
 local function minionMatch(adventure, minion)
-	local sort = MamigoGlobal.settings.sort
-	local max = MamigoGlobal.settings.max[adventure.reward]
-	local min = MamigoGlobal.settings.min
+	local prio = SbireManagerGlobal.settings.prio
+	local sendMin = SbireManagerGlobal.settings.sendMin
 
-	if not min and minion.level == 1 then
+	--verifier si on veux xp les sbires lvl 1
+	if not sendMin and minion.level == 1 then
+		return 0
+	end
+	
+	--ne pas xp les sbire les 25
+	if (SbireManagerGlobal.settings.adventureTime == "experience") and (not minion.experienceNeeded) then
+		return 0
+	end
+		
+	--verifier qu'on a assé d'energie
+	local energiePostAdventure = minion.stamina - adventure.costStamina
+	if (energiePostAdventure < 0) or (energiePostAdventure < SbireManagerGlobal.settings.energieMin) then
 		return 0
 	end
 
-	if not max and minion.experienceNeeded == nil then
-		return 0
-	end
-
-	local stamina = adventure.costStamina
-	if (minion.experienceNeeded == nil or not MamigoGlobal.settings.stamina_max_only) and stamina < MamigoGlobal.settings.stamina then
-		stamina = stamina + MamigoGlobal.settings.stamina
-	end
-	if minion.stamina < stamina then
-		return 0
-	end
-
-	local stat = 0
+	local minionWeight = 0
 	for i, name in ipairs(statNames) do
 		if adventure["stat" .. name] and minion["stat" .. name] ~= nil then
-			if sort == "stamina" then
-				stat = minion.stamina
-			elseif sort == "stat" then
-				stat = stat + minion["stat" .. name]
-			elseif sort == "level" then
-				stat = minion.level
-			elseif sort == "levelasc" then
-				stat = 1000 - minion.level
+			if prio == "energie" then
+				minionWeight = minion.stamina
+			elseif prio == "stats" then
+				minionWeight = minionWeight + minion["stat" .. name]
+			elseif prio == "level_desc" then
+				minionWeight = minion.level
+			elseif prio == "level_asc" then
+				minionWeight = 1000 - minion.level
 			end
 		end
 	end
 
 	--common = blanc / uncommon = vert / rare = bleu / epic = violet
-	if adventure.reward == "experience" then
-		if stat == 0 then
-			stat = 1
+	if SbireManagerGlobal.settings.adventureTime == "experience" then
+		if minionWeight == 0 then
+			minionWeight = 1
 		elseif minion.rarity == "common" then
-			stat = stat * 2 * 2
+			minionWeight = minionWeight * 2 * 2
 		elseif minion.rarity == "uncommon" then
-			stat = stat * 1
+			minionWeight = minionWeight * 1
 		elseif minion.rarity == "rare" then
-			stat = stat * 3
+			minionWeight = minionWeight * 3
 		elseif minion.rarity == "epic" then
-			stat = stat * 50
+			minionWeight = minionWeight * 50
 		end
 	end
-	return stat
+	
+	return minionWeight
 end
 
-local function mamigoEnable(enable)
-	mamigoButton:SetEnabled(enable)
+local function sbireManagerEnable(enable)
+	sbireManagerButton:SetEnabled(enable or SbireManagerGlobal.settings.hurry)
 	updateEnable = Inspect.Time.Real()
 end
 
@@ -484,34 +523,30 @@ local function minionReady()
 	local aids = Inspect.Minion.Adventure.List()
 	if aids == nil then
 		-- This can happen when logging in
-		mamigoEnable(false)
+		sbireManagerEnable(false)
 		return
 	end
 	local adventures = Inspect.Minion.Adventure.Detail(aids)
 	local slot = Inspect.Minion.Slot()
 	for aid, adventure in pairs(adventures) do
 		if adventure.mode == "finished" then
-			mamigoEnable(true)
+			sbireManagerEnable(true)
 			return
 		elseif adventure.mode == "working" then
 			slot = slot - 1
 		end
 	end
 	if slot > 0 then
-		mamigoEnable(true)
+		sbireManagerEnable(true)
 		return
 	end
-	mamigoEnable(false)
+	sbireManagerEnable(false)
 end
 
 local function minionReadyTimer()
 	if (Inspect.Time.Real() >= updateEnable + 1) then
 		minionReady()
 	end
-end
-
-local function itemReady()
-	minionReady()
 end
 
 local function minionSend(aid, adventure, busy)
@@ -531,14 +566,13 @@ local function minionSend(aid, adventure, busy)
 		end
 	end
 	if bestid ~= false and best > 0 then
-		print("Sending " .. bestminion.name .. " on " .. adventure.name)
 		if adventure.costAventurine > 0 then
 			Command.Minion.Send(bestid, aid, "aventurine")
 		else
 			Command.Minion.Send(bestid, aid, "none")
 		end
 	else
-		print("No available minions")
+		print("Aucun minion compatible")
 	end
 end
 
@@ -548,7 +582,6 @@ local adventureMatch = {
 	long = function (a) return a.duration == 8*60*60 and a.reward ~= "experience" and a.costAventurine == 0 end,
 	aventurine = function (a) return a.duration == 10*60*60 and a.reward ~= "experience" and a.costAventurine > 0 end
 }
-
 local adventureMatchAll = {
 	experience = function (a) return a.reward == "experience" and a.costAventurine == 0 end,
 	short = function (a) return a.duration < 2*60*60 and a.reward ~= "experience" and a.costAventurine == 0 end,
@@ -557,36 +590,39 @@ local adventureMatchAll = {
 }
 
 local function minionGo()
-	if not mamigoButton:GetEnabled() then
+	if not sbireManagerButton:GetEnabled() then
 		return
 	end
-	mamigoEnable(false)
-
+	
 	local aids = Inspect.Minion.Adventure.List()
 	local adventures = Inspect.Minion.Adventure.Detail(aids)
 	local slot = Inspect.Minion.Slot()
 	local busy = {}
 	for aid, adventure in pairs(adventures) do
 		if adventure.mode == "finished" then
-			print("Claiming " .. adventure.name)
+			print("Mission termine")
 			Command.Minion.Claim(aid)
 			return
 		elseif adventure.mode == "working" and adventure.completion > os.time() then
+			if SbireManagerGlobal.settings.hurry then
+				Command.Minion.Hurry(aid, "aventurine")
+				return
+			end
 			slot = slot - 1
 			busy[adventure.minion] = adventure
 		end
 	end
 
 	if slot <= 0 then
-		print("No available slots")
+		print("Aucun slot disponible")
 		return
 	end
 
 	local match
-	if MamigoGlobal.settings.adventure_all then
-		match = adventureMatchAll[MamigoGlobal.settings.adventure]
+	if SbireManagerGlobal.settings.adventureEvent then
+		match = adventureMatchAll[SbireManagerGlobal.settings.adventureTime]
 	else
-		match = adventureMatch[MamigoGlobal.settings.adventure]
+		match = adventureMatch[SbireManagerGlobal.settings.adventureTime]
 	end
 	for aid, adventure in pairs(adventures) do
 		if adventure.mode == "available" and match(adventure) then
@@ -594,7 +630,7 @@ local function minionGo()
 			return
 		end
 	end
-	print("No available adventures")
+	print("Aucune aventure ne correspond a vos critere (shuffle=)" .. SbireManagerGlobal.settings.shuffle)
 end
 
 --#################################################################################################################################
@@ -610,20 +646,19 @@ local function main(handle, addonIdentifier)
 
 	local context = UI.CreateContext(addon.identifier)
 
-	mamigoButton = createButton(context)
-	mamigoButton:SetPoint("TOPLEFT", UIParent, "TOPLEFT", MamigoSettings.window.x, MamigoSettings.window.y)
-	dragAttach(mamigoButton, MamigoSettings.window)
-	mamigoButton:EventAttach(Event.UI.Input.Mouse.Left.Click, minionGo, "minionGo")
+	sbireManagerButton = createButton(context)
+	sbireManagerButton:SetPoint("TOPLEFT", UIParent, "TOPLEFT", SbireManagerSettings.window.x, SbireManagerSettings.window.y)
+	dragAttach(sbireManagerButton, SbireManagerSettings.window)
+	sbireManagerButton:EventAttach(Event.UI.Input.Mouse.Left.Click, minionGo, "minionGo")
 
-	local mamigoMenu = menuInit(context, MamigoGlobal.settings)
-	mamigoMenu:SetVisible(false)
-	mamigoButton:EventAttach(Event.UI.Input.Mouse.Right.Click, function ()
-		menuToggle(mamigoButton, mamigoMenu)
+	local sbireManagerMenu = menuInit(context, SbireManagerGlobal.settings)
+	sbireManagerMenu:SetVisible(false)
+	sbireManagerButton:EventAttach(Event.UI.Input.Mouse.Right.Click, function ()
+		menuToggle(sbireManagerButton, sbireManagerMenu)
 	end, "menuRightClick");
 
 	Command.Event.Attach(Event.System.Update.Begin, minionReadyTimer, "minionReadyTimer")
 	Command.Event.Attach(Event.Minion.Adventure.Change, minionReady, "minionReady")
-	Command.Event.Attach(Event.Item.Slot, itemReady, "itemReady")
 	Command.Event.Attach(Event.Queue.Status, minionReady, "minionReady")
 end
 

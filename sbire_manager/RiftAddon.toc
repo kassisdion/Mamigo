@@ -1,0 +1,17 @@
+Identifier = "sbire_manager"
+Name = "sbire_manager"
+Description = "Make minions go on adventures"
+Author = "kâssisdion@brisesol"
+Email = "https://github.com/kassisdion"
+
+Version = "1.2"
+Environment = "3.1"
+
+RunOnStartup = {
+	"main.lua"
+}
+
+SavedVariables = {
+	SbireManagerGlobal = "account",
+	SbireManagerSettings = "account",
+}
