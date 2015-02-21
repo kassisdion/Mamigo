@@ -4,7 +4,7 @@ local boxWidth = 270
 local frameHeight = 20
 local sbireManagerButton = nil
 local updateEnable = 0
-local DEBUG = false
+local DEBUG = true
 local fontSize = 14
 
 local statNames = {
@@ -58,7 +58,8 @@ local function printText(text)
 end
 
 local function printDebug(msg)
-	if DEBUG then displayText("general", false, msg, true) end
+	local colorTag = "<font color=\"#FF00FF\">"
+	if DEBUG then displayText("general", false, colorTag .. msg, true) end
 end
 
 ---------TEXTURE-------------------------------------------------------------------------------------------------------------------
@@ -600,13 +601,16 @@ local function minionSend(aid, adventure, busy)
 			end
 		end
 	end
+	
+	local test
+	
 	if bestid ~= false and best > 0 then
 		if adventure.costAventurine > 0 then
-			Command.Minion.Send(bestid, aid, "aventurine")
+			test = Command.Minion.Send(bestid, aid, "aventurine")
 		else
-			Command.Minion.Send(bestid, aid, "none")
+			test = Command.Minion.Send(bestid, aid, "none")
 		end
-		printText("Sbire envoyé pour " .. tonumber(adventure.duration / 60) .. "mn")
+		printText("Envois de \"" .. bestminion.name .. "\"".. " pour " .. tonumber(adventure.duration / 60) .. "mn")
 	else
 		printText("Aucun minion compatible avec l'aventure\"" .. adventure.name .. "\" trouvé")
 	end
@@ -652,7 +656,7 @@ local function minionGo()
 	local busy = {}
 	for aid, adventure in pairs(adventures) do
 		if adventure.mode == "finished" then
-			printText("Sbire récupéré")
+			printText("Récupération du sbire...")
 			Command.Minion.Claim(aid)
 			return
 		elseif adventure.mode == "working" and adventure.completion > os.time() then
