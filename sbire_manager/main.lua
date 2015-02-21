@@ -606,6 +606,7 @@ local function minionSend(aid, adventure, busy)
 		else
 			Command.Minion.Send(bestid, aid, "none")
 		end
+		printText("Sbire envoyé pour " .. tonumber(adventure.duration / 60) .. "mn")
 	else
 		printText("Aucun minion compatible avec l'aventure\"" .. adventure.name .. "\" trouvé")
 	end
