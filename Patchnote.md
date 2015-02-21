@@ -23,3 +23,5 @@ Reprise de l'addon Mamigo et :
 ##V2.1
 - Debug de l'option "Seulement pour les lvl 25" dans la catégorie "energie minimal"
 - L'option "shufle" est terminé/fonctionnel
+- Ajout de méssage dans le canal général qui permetent de voir ce que fait l'addon.
+- Les messages sont maintenant affiché en couleur (et accent géré)
