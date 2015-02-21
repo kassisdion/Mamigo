@@ -269,7 +269,7 @@ local function menuInit(parent, settings)
 			y = createMenuSeparator(body, y)
 			y = createMenuCheckbox(body, y, "Aventures d'events", settings, "adventureEvent")
 			y = createMenuSeparator(body, y)
-			y = createMenuCheckbox(body, y, "Accelerer (consome de l'aventurine)", settings, "hurry")
+			y = createMenuCheckbox(body, y, "Accelerer (en aventurine)", settings, "hurry")
 			return y
 		end)
 		
@@ -475,7 +475,10 @@ local function minionMatch(adventure, minion)
 		
 	--verifier qu'on a assé d'energie
 	local energiePostAdventure = minion.stamina - adventure.costStamina
-	if (energiePostAdventure < 0) or (energiePostAdventure < SbireManagerGlobal.settings.energieMin) then
+	if ((SbireManagerGlobal.settings.energieMinFilter) == false or (minion.level == 25)) then
+		energiePostAdventure = energiePostAdventure - SbireManagerGlobal.settings.energieMin
+	end
+	if (energiePostAdventure < 0) then
 		return 0
 	end
 

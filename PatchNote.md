@@ -19,3 +19,6 @@ Reprise de l'addon Mamigo et :
 - Code mieu commenté
 - Ajout de fonction pour le debug
 - Prépation de la 2.1 : Déstruction des objets dimentionel / Shuffle des aventures
+
+##V2.0.1
+- Debug de l'option "Seulement pour les lvl 25" dans la catégorie "energie minimal"
