@@ -47,9 +47,18 @@ local function startsWith(s, start)
 	return string.sub(s, 1, string.len(start)) == start
 end
 
----------DEBUG---------------------------------------------------------------------------------------------------------------------
+---------LOG-----------------------------------------------------------------------------------------------------------------------
+local function displayText(console, suppressPrefix, text, html)
+	Command.Console.Display(console, suppressPrefix, text, html)
+end
+
+local function printText(text)
+	local colorTag = "<font color=\"#00FF00\">"
+	displayText("general", false, colorTag .. text, true)
+end
+
 local function printDebug(msg)
-	if DEBUG then print(msg) end
+	if DEBUG then displayText("general", false, msg, true) end
 end
 
 ---------TEXTURE-------------------------------------------------------------------------------------------------------------------
@@ -433,7 +442,22 @@ local function settingsInit()
 	if SbireManagerGlobal.settings.hurry == nil then SbireManagerGlobal.settings.hurry = false end
 	
 	--type d'aventure
-	if SbireManagerGlobal.settings.adventureTypeWanted == nil then SbireManagerGlobal.settings.adventureTypeWanted = {} end
+	if SbireManagerGlobal.settings.adventureTypeWanted == nil then
+		SbireManagerGlobal.settings.adventureTypeWanted = {}
+		SbireManagerGlobal.settings.adventureTypeWanted["Air"] = true
+		SbireManagerGlobal.settings.adventureTypeWanted["Artifact"] = true
+		SbireManagerGlobal.settings.adventureTypeWanted["Assassination"] = true
+		SbireManagerGlobal.settings.adventureTypeWanted["Death"] = true
+		SbireManagerGlobal.settings.adventureTypeWanted["Dimension"] = true
+		SbireManagerGlobal.settings.adventureTypeWanted["Diplomacy"] = true
+		SbireManagerGlobal.settings.adventureTypeWanted["Earth"] = true
+		SbireManagerGlobal.settings.adventureTypeWanted["Exploration"] = true
+		SbireManagerGlobal.settings.adventureTypeWanted["Fire"] = true
+		SbireManagerGlobal.settings.adventureTypeWanted["Harvest"] = true
+		SbireManagerGlobal.settings.adventureTypeWanted["Hunting"] = true
+		SbireManagerGlobal.settings.adventureTypeWanted["Life"] = true
+		SbireManagerGlobal.settings.adventureTypeWanted["Water"] = true
+	end
 	if SbireManagerGlobal.settings.shuffle == nil then SbireManagerGlobal.settings.shuffle = false end
 	
 	--priorisation
@@ -538,7 +562,10 @@ local function minionReady()
 	local slot = Inspect.Minion.Slot()
 	for aid, adventure in pairs(adventures) do
 		if adventure.mode == "finished" then
-			sbireManagerEnable(true)
+			if not sbireManagerButton:GetEnabled() then
+				printText("Aventure terminé")
+				sbireManagerEnable(true)
+			end
 			return
 		elseif adventure.mode == "working" then
 			slot = slot - 1
@@ -580,7 +607,7 @@ local function minionSend(aid, adventure, busy)
 			Command.Minion.Send(bestid, aid, "none")
 		end
 	else
-		print("Aucun minion compatible")
+		printText("Aucun minion compatible avec l'aventure\"" .. adventure.name .. "\" trouvé")
 	end
 end
 
@@ -607,16 +634,10 @@ end
 
 local function shuffleAdventure(aid, adventure)
 	if SbireManagerGlobal.settings.shuffle then
-		print("Remaniement de " .. adventure.name)
-		print(adventure.duration)
-		if (adventure.mode == nil)
-			then  print("mode null")
-		else
-			print("mode : " .. adventure.mode)
-		end
+		printText("Remaniement de l'aventure \"" .. adventure.name .. "\"")
 		Command.Minion.Shuffle(aid, "aventurine")
 	end
-	print("Aucune aventure ne correspond a vos criteres")
+	printText("Aucune aventure ne correspond à vos criteres")
 end
 
 local function minionGo()
@@ -630,7 +651,7 @@ local function minionGo()
 	local busy = {}
 	for aid, adventure in pairs(adventures) do
 		if adventure.mode == "finished" then
-			print("Mission termine")
+			printText("Sbire récupéré")
 			Command.Minion.Claim(aid)
 			return
 		elseif adventure.mode == "working" and adventure.completion > os.time() then
@@ -644,7 +665,7 @@ local function minionGo()
 	end
 
 	if slot <= 0 then
-		print("Aucun slot disponible")
+		printText("Aucun slot de disponible")
 		return
 	end
 
@@ -676,13 +697,8 @@ end
 			---MAIN----------------------------------------------------------------------------------------------------------------
 --#################################################################################################################################
 
-local function main(handle, addonIdentifier)
-	if addonIdentifier ~= addon.identifier then
-		return
-	end
-
+local function init()
 	settingsInit()
-
 	local context = UI.CreateContext(addon.identifier)
 
 	sbireManagerButton = createButton(context)
@@ -699,6 +715,15 @@ local function main(handle, addonIdentifier)
 	Command.Event.Attach(Event.System.Update.Begin, minionReadyTimer, "minionReadyTimer")
 	Command.Event.Attach(Event.Minion.Adventure.Change, minionReady, "minionReady")
 	Command.Event.Attach(Event.Queue.Status, minionReady, "minionReady")
+end
+
+local function main(handle, addonIdentifier)
+	if addonIdentifier ~= addon.identifier then
+		return
+	end
+	
+	init()
+	printText("Initialisation terminé")
 end
 
 Command.Event.Attach(Event.Addon.Load.End, main, "main")
