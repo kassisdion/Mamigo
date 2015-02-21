@@ -7,6 +7,22 @@ local updateEnable = 0
 local DEBUG = false
 local fontSize = 14
 
+local statNames = {
+	"Air",
+	"Artifact",
+	"Assassination",
+	"Death",
+	"Dimension",
+	"Diplomacy",
+	"Earth",
+	"Exploration",
+	"Fire",
+	"Harvest",
+	"Hunting",
+	"Life",
+	"Water"
+}
+
 --#################################################################################################################################
 			---UTILS---
 --#################################################################################################################################
@@ -274,12 +290,19 @@ local function menuInit(parent, settings)
 		end)
 		
 		y = createSubmenu(body, y, "Type d'aventure :", function (body, y)
-			y = createMenuCheckbox(body, y, "-Artefact", settings.adventureTypeWanted, "artifact")
-			y = createMenuCheckbox(body, y, "-Dimension", settings.adventureTypeWanted, "dimension")
-			y = createMenuCheckbox(body, y, "-Diplomacie", settings.adventureTypeWanted, "diplomacy")
-			y = createMenuCheckbox(body, y, "-Recolte", settings.adventureTypeWanted, "harvest")
-			y = createMenuCheckbox(body, y, "-Chasse", settings.adventureTypeWanted, "hunt")
-			y = createMenuCheckbox(body, y, "-Materiel", settings.adventureTypeWanted, "material")
+			y = createMenuCheckbox(body, y, "-Air", settings.adventureTypeWanted, statNames[1])
+			y = createMenuCheckbox(body, y, "-Artefact", settings.adventureTypeWanted, statNames[2])
+			y = createMenuCheckbox(body, y, "-Assassinat", settings.adventureTypeWanted, statNames[3])
+			y = createMenuCheckbox(body, y, "-Death", settings.adventureTypeWanted, statNames[4])
+			y = createMenuCheckbox(body, y, "-Dimension", settings.adventureTypeWanted, statNames[5])
+			y = createMenuCheckbox(body, y, "-Diplomacy", settings.adventureTypeWanted, statNames[6])
+			y = createMenuCheckbox(body, y, "-Terre", settings.adventureTypeWanted, statNames[7])
+			y = createMenuCheckbox(body, y, "-Exploration", settings.adventureTypeWanted, statNames[8])
+			y = createMenuCheckbox(body, y, "-Feu", settings.adventureTypeWanted, statNames[9])
+			y = createMenuCheckbox(body, y, "-Recolte", settings.adventureTypeWanted, statNames[10])
+			y = createMenuCheckbox(body, y, "-Chasse", settings.adventureTypeWanted, statNames[11])
+			y = createMenuCheckbox(body, y, "-Vue", settings.adventureTypeWanted, statNames[12])
+			y = createMenuCheckbox(body, y, "-Eau", settings.adventureTypeWanted, statNames[13])
 			y = createMenuSeparator(body, y)
 			y = createMenuCheckbox(body, y, "Remanier", settings, "shuffle")
 			return y
@@ -443,22 +466,6 @@ end
 			---CORE----
 --#################################################################################################################################
 
-local statNames = {
-	"Air",
-	"Artifact",
-	"Assassination",
-	"Death",
-	"Dimension",
-	"Diplomacy",
-	"Earth",
-	"Exploration",
-	"Fire",
-	"Harvest",
-	"Hunting",
-	"Life",
-	"Water"
-}
-
 local function minionMatch(adventure, minion)
 	local prio = SbireManagerGlobal.settings.prio
 	local sendMin = SbireManagerGlobal.settings.sendMin
@@ -590,6 +597,28 @@ local adventureMatchAll = {
 	aventurine = function (a) return a.duration >= 2*60*60 and a.reward ~= "experience" and a.costAventurine > 0 end
 }
 
+local function matchStats(adventure)
+	for i, name in ipairs(statNames) do
+		tmp = adventure["stat" .. name] and SbireManagerGlobal.settings.adventureTypeWanted[name]
+		if tmp then return true end
+	end
+	return false
+end
+
+local function shuffleAdventure(aid, adventure)
+	if SbireManagerGlobal.settings.shuffle then
+		print("Remaniement de " .. adventure.name)
+		print(adventure.duration)
+		if (adventure.mode == nil)
+			then  print("mode null")
+		else
+			print("mode : " .. adventure.mode)
+		end
+		Command.Minion.Shuffle(aid, "aventurine")
+	end
+	print("Aucune aventure ne correspond a vos criteres")
+end
+
 local function minionGo()
 	if not sbireManagerButton:GetEnabled() then
 		return
@@ -622,24 +651,25 @@ local function minionGo()
 	--on cherche une aventure
 	local match
 	if SbireManagerGlobal.settings.adventureEvent then
-		match = adventureMatchAll[SbireManagerGlobal.settings.adventureTime]
+		matchTime = adventureMatchAll[SbireManagerGlobal.settings.adventureTime]
 	else
-		match = adventureMatch[SbireManagerGlobal.settings.adventureTime]
+		matchTime = adventureMatch[SbireManagerGlobal.settings.adventureTime]
 	end
+	
+	local _matchStats
 	for aid, adventure in pairs(adventures) do
-		if adventure.mode == "available" and match(adventure) then
-			minionSend(aid, adventure, busy)
+		_matchStats = (SbireManagerGlobal.settings.adventureTime == "experience") or matchStats(adventure)
+		
+		if (adventure.mode == "available" and matchTime(adventure)) then
+			if (_matchStats) then
+				minionSend(aid, adventure, busy)
+				return
+			end
+			--l'aventure ne corresponds pas en carac
+			shuffleAdventure(aid, adventure)
 			return
 		end
 	end
-	
-	--on n'a pas d'aventure
-	if SbireManagerGlobal.settings.shuffle then
-		print("Aucune aventure ne correspond a vos critere, remaniement de l'aventure...")
-		Command.Minion.Shuffle(adventure, "aventurine")
-		minionGo()
-	end
-	print("Aucune aventure ne correspond a vos criteres")
 end
 
 --#################################################################################################################################
