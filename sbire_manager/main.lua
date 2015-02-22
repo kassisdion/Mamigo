@@ -420,7 +420,7 @@ local function createButton(context)
 	end
 
 	Command.Event.Attach(Event.System.Update.Begin, function ()
-		if SbireManagerGlobal.settings.flash then
+		if SbireManagerGlobal.settings.highLigh then
 			texture3:SetAlpha(math.abs(Inspect.Time.Real() * frameHeight % frameHeight - 10) / 10)
 		else
 			texture3:SetAlpha(0)
