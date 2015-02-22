@@ -26,3 +26,8 @@ Reprise de l'addon Mamigo et :
 - Ajout de méssage dans le canal général qui permetent de voir ce que fait l'addon.
 - Les messages sont maintenant affiché en couleur (et accent géré)
 - 2.1.1 : debug des filtres de "type d'aventure"
+
+##V 2.2
+- Ajout du filtre "element non voulus
+- Changement de l'organisation de l'interface
+- Changement de l'algo de selection des sbires (pour prendre en compte les nouveaux filtre)
