@@ -28,6 +28,6 @@ Reprise de l'addon Mamigo et :
 - 2.1.1 : debug des filtres de "type d'aventure"
 
 ##V 2.2
-- Ajout du filtre "element non voulus
+- Ajout du filtre "element non voulus"
 - Changement de l'organisation de l'interface
 - Changement de l'algo de selection des sbires (pour prendre en compte les nouveaux filtre)
