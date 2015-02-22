@@ -1,10 +1,10 @@
 Identifier = "sbire_manager"
 Name = "sbire_manager"
 Description = "Make minions go on adventures"
-Author = "k‚ssisdion@brisesol"
+Author = "k√¢ssisdion@brisesol"
 Email = "https://github.com/kassisdion"
 
-Version = "1.2"
+Version = "2.2"
 Environment = "3.1"
 
 RunOnStartup = {
