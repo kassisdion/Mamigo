@@ -299,7 +299,7 @@ local function menuInit(parent, settings)
 			return y
 		end)
 		
-		y = createSubmenu(body, y, "Type d'aventure :", function (body, y)
+		y = createSubmenu(body, y, "Element voulus :", function (body, y)
 			y = createMenuCheckbox(body, y, "-Air", settings.adventureTypeWanted, statNames[1])
 			y = createMenuCheckbox(body, y, "-Artefact", settings.adventureTypeWanted, statNames[2])
 			y = createMenuCheckbox(body, y, "-Assassinat", settings.adventureTypeWanted, statNames[3])
@@ -313,6 +313,25 @@ local function menuInit(parent, settings)
 			y = createMenuCheckbox(body, y, "-Chasse", settings.adventureTypeWanted, statNames[11])
 			y = createMenuCheckbox(body, y, "-Vue", settings.adventureTypeWanted, statNames[12])
 			y = createMenuCheckbox(body, y, "-Eau", settings.adventureTypeWanted, statNames[13])
+			y = createMenuSeparator(body, y)
+			y = createMenuCheckbox(body, y, "Remanier", settings, "shuffle")
+			return y
+		end)
+		
+		y = createSubmenu(body, y, "Element non voulus :", function (body, y)
+			y = createMenuCheckbox(body, y, "-Air", settings.adventureTypeNonWanted, statNames[1])
+			y = createMenuCheckbox(body, y, "-Artefact", settings.adventureTypeNonWanted, statNames[2])
+			y = createMenuCheckbox(body, y, "-Assassinat", settings.adventureTypeNonWanted, statNames[3])
+			y = createMenuCheckbox(body, y, "-Death", settings.adventureTypeNonWanted, statNames[4])
+			y = createMenuCheckbox(body, y, "-Dimension", settings.adventureTypeNonWanted, statNames[5])
+			y = createMenuCheckbox(body, y, "-Diplomacy", settings.adventureTypeNonWanted, statNames[6])
+			y = createMenuCheckbox(body, y, "-Terre", settings.adventureTypeNonWanted, statNames[7])
+			y = createMenuCheckbox(body, y, "-Exploration", settings.adventureTypeNonWanted, statNames[8])
+			y = createMenuCheckbox(body, y, "-Feu", settings.adventureTypeNonWanted, statNames[9])
+			y = createMenuCheckbox(body, y, "-Recolte", settings.adventureTypeNonWanted, statNames[10])
+			y = createMenuCheckbox(body, y, "-Chasse", settings.adventureTypeNonWanted, statNames[11])
+			y = createMenuCheckbox(body, y, "-Vue", settings.adventureTypeNonWanted, statNames[12])
+			y = createMenuCheckbox(body, y, "-Eau", settings.adventureTypeNonWanted, statNames[13])
 			y = createMenuSeparator(body, y)
 			y = createMenuCheckbox(body, y, "Remanier", settings, "shuffle")
 			return y
@@ -399,7 +418,7 @@ local function createButton(context)
 		end
 	end, "buttonCursorOut")
 
-	function frame:SetEnabled(enabled)
+	function frame:SetEnabled(enabled)		
 		if frame.state ~= enabled then
 			frame.state = enabled
 			if frame.state then
@@ -442,7 +461,7 @@ local function settingsInit()
 	if SbireManagerGlobal.settings.adventureEvent == nil then SbireManagerGlobal.settings.adventureEvent = true end
 	if SbireManagerGlobal.settings.hurry == nil then SbireManagerGlobal.settings.hurry = false end
 	
-	--type d'aventure
+	--type d'aventure voulus
 	if SbireManagerGlobal.settings.adventureTypeWanted == nil then
 		SbireManagerGlobal.settings.adventureTypeWanted = {}
 		SbireManagerGlobal.settings.adventureTypeWanted["Air"] = true
@@ -459,6 +478,25 @@ local function settingsInit()
 		SbireManagerGlobal.settings.adventureTypeWanted["Life"] = true
 		SbireManagerGlobal.settings.adventureTypeWanted["Water"] = true
 	end
+	
+		--type d'aventure non voulus
+	if SbireManagerGlobal.settings.adventureTypeNonWanted == nil then
+		SbireManagerGlobal.settings.adventureTypeNonWanted = {}
+		SbireManagerGlobal.settings.adventureTypeNonWanted["Air"] = false
+		SbireManagerGlobal.settings.adventureTypeNonWanted["Artifact"] = false
+		SbireManagerGlobal.settings.adventureTypeNonWanted["Assassination"] = false
+		SbireManagerGlobal.settings.adventureTypeNonWanted["Death"] = false
+		SbireManagerGlobal.settings.adventureTypeNonWanted["Dimension"] = false
+		SbireManagerGlobal.settings.adventureTypeNonWanted["Diplomacy"] = false
+		SbireManagerGlobal.settings.adventureTypeNonWanted["Earth"] = false
+		SbireManagerGlobal.settings.adventureTypeNonWanted["Exploration"] = false
+		SbireManagerGlobal.settings.adventureTypeNonWanted["Fire"] = false
+		SbireManagerGlobal.settings.adventureTypeNonWanted["Harvest"] = false
+		SbireManagerGlobal.settings.adventureTypeNonWanted["Hunting"] = false
+		SbireManagerGlobal.settings.adventureTypeNonWanted["Life"] = false
+		SbireManagerGlobal.settings.adventureTypeNonWanted["Water"] = false
+	end
+	
 	if SbireManagerGlobal.settings.shuffle == nil then SbireManagerGlobal.settings.shuffle = false end
 	
 	--priorisation
@@ -631,8 +669,10 @@ local adventureMatchAll = {
 
 local function matchStats(adventure)
 	for i, name in ipairs(statNames) do
+		if SbireManagerGlobal.settings.adventureTypeNonWanted[name] then return false end
+		adventureStat = adventure["stat" .. name]
 		tmp = adventure["stat" .. name] and SbireManagerGlobal.settings.adventureTypeWanted[name]
-		if tmp then return true end
+		if tmp then return true end			
 	end
 	return false
 end
