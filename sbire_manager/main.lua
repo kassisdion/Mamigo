@@ -769,7 +769,7 @@ local function main(handle, addonIdentifier)
 	end
 	
 	init()
-	printText("Initialisation terminé")
+	printText("Initialisation terminé (V 2.2)")
 end
 
 Command.Event.Attach(Event.Addon.Load.End, main, "main")
