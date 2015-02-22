@@ -25,3 +25,4 @@ Reprise de l'addon Mamigo et :
 - L'option "shufle" est terminé/fonctionnel
 - Ajout de méssage dans le canal général qui permetent de voir ce que fait l'addon.
 - Les messages sont maintenant affiché en couleur (et accent géré)
+- 2.1.1 : debug des filtres de "type d'aventure"

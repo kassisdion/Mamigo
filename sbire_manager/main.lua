@@ -299,6 +299,8 @@ local function menuInit(parent, settings)
 			return y
 		end)
 		
+		y = createMenuSeparator(body, y)
+		
 		y = createSubmenu(body, y, "Element voulus :", function (body, y)
 			y = createMenuCheckbox(body, y, "-Air", settings.adventureTypeWanted, statNames[1])
 			y = createMenuCheckbox(body, y, "-Artefact", settings.adventureTypeWanted, statNames[2])
@@ -313,8 +315,6 @@ local function menuInit(parent, settings)
 			y = createMenuCheckbox(body, y, "-Chasse", settings.adventureTypeWanted, statNames[11])
 			y = createMenuCheckbox(body, y, "-Vue", settings.adventureTypeWanted, statNames[12])
 			y = createMenuCheckbox(body, y, "-Eau", settings.adventureTypeWanted, statNames[13])
-			y = createMenuSeparator(body, y)
-			y = createMenuCheckbox(body, y, "Remanier", settings, "shuffle")
 			return y
 		end)
 		
@@ -332,10 +332,10 @@ local function menuInit(parent, settings)
 			y = createMenuCheckbox(body, y, "-Chasse", settings.adventureTypeNonWanted, statNames[11])
 			y = createMenuCheckbox(body, y, "-Vue", settings.adventureTypeNonWanted, statNames[12])
 			y = createMenuCheckbox(body, y, "-Eau", settings.adventureTypeNonWanted, statNames[13])
-			y = createMenuSeparator(body, y)
-			y = createMenuCheckbox(body, y, "Remanier", settings, "shuffle")
 			return y
 		end)
+		
+		y = createMenuCheckbox(body, y, "Remanier", settings, "shuffle")
 		
 		--Minion settings
 		y = createMenuSeparator(body, y)
@@ -644,11 +644,10 @@ local function minionSend(aid, adventure, busy)
 	
 	if bestid ~= false and best > 0 then
 		if adventure.costAventurine > 0 then
-			test = Command.Minion.Send(bestid, aid, "aventurine")
+			Command.Minion.Send(bestid, aid, "aventurine")
 		else
-			test = Command.Minion.Send(bestid, aid, "none")
+			Command.Minion.Send(bestid, aid, "none")
 		end
-		printText("Envois de \"" .. bestminion.name .. "\"".. " pour " .. tonumber(adventure.duration / 60) .. "mn")
 	else
 		printText("Aucun minion compatible avec l'aventure\"" .. adventure.name .. "\" trouvé")
 	end
@@ -669,12 +668,14 @@ local adventureMatchAll = {
 
 local function matchStats(adventure)
 	for i, name in ipairs(statNames) do
-		if SbireManagerGlobal.settings.adventureTypeNonWanted[name] then return false end
 		adventureStat = adventure["stat" .. name]
-		tmp = adventure["stat" .. name] and SbireManagerGlobal.settings.adventureTypeWanted[name]
-		if tmp then return true end			
+		if adventureStat then
+			if SbireManagerGlobal.settings.adventureTypeNonWanted[name] then
+				return false
+			end
+		end
 	end
-	return false
+	return true
 end
 
 local function shuffleAdventure(aid, adventure)
@@ -724,9 +725,9 @@ local function minionGo()
 	
 	local _matchStats
 	for aid, adventure in pairs(adventures) do
-		_matchStats = (SbireManagerGlobal.settings.adventureTime == "experience") or matchStats(adventure)
 		
 		if (adventure.mode == "available" and matchTime(adventure)) then
+			_matchStats = (SbireManagerGlobal.settings.adventureTime == "experience") or matchStats(adventure)
 			if (_matchStats) then
 				minionSend(aid, adventure, busy)
 				return
