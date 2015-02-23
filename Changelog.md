@@ -31,3 +31,8 @@ Reprise de l'addon Mamigo et :
 - Ajout du filtre "element non voulus"
 - Changement de l'organisation de l'interface
 - Changement de l'algo de selection des sbires (pour prendre en compte les nouveaux filtre)
+
+##V 2.3
+- Option "Aventure voulus retiré"
+- Ajout de la frame avec le "timer"
+- Debug

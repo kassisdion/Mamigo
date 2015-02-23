@@ -1,11 +1,22 @@
 local addon, private = ...
 
+local DEBUG = true
+
+local sbireManagerButton = nil
+local countdown = 0
+local countdownFrame = nil
+local lastRefresh = 0
+
 local boxWidth = 270
 local frameHeight = 20
-local sbireManagerButton = nil
-local updateEnable = 0
-local DEBUG = true
 local fontSize = 14
+
+local COLOR_GREEN = "<font color=\"#00FF00\">"
+local COLOR_RED = "<font color=\"#FF0000\">"
+local COLOR_BLUE = "<font color=\"#0000FF\">"
+local COLOR_WHITE = "<font color=\"#000000\">"
+local COLOR_BLACK = "<font color=\"#000000\">"
+local COLOR_PINK = "<font color=\"#FF00FF\">"
 
 local statNames = {
 	"Air",
@@ -47,13 +58,18 @@ local function startsWith(s, start)
 	return string.sub(s, 1, string.len(start)) == start
 end
 
+local function updateCountdown(newDuration)
+	local currentTime = Inspect.Time.Real()
+	local newCountdown = currentTime + newDuration
+	if countdown < currentTime or newCountdown < countdown then countdown = newCountdown end
+end
+
 ---------LOG-----------------------------------------------------------------------------------------------------------------------
 local function displayText(console, suppressPrefix, text, html)
 	Command.Console.Display(console, suppressPrefix, text, html)
 end
 
-local function printText(text)
-	local colorTag = "<font color=\"#00FF00\">"
+local function printText(text, colorTag)
 	displayText("general", false, colorTag .. text, true)
 end
 
@@ -150,12 +166,6 @@ local function createText(parent, x, y, text)
 	return frame
 end
 
-local function createTextWithoutFrame(parent, y, text)
-	local frame = createMenuFrame(parent, y)
-	createText(frame, 38, 0, text)
-	return y + frameHeight
-end
-	
 local function createSubmenu(parent, y, text, cb)
 	local frame = createMenuFrame(parent, y)
 	createText(frame, 38, 0, text)
@@ -281,6 +291,16 @@ end
 			---INIT
 --#################################################################################################################################		
 
+local function initCountdown()
+	local aids = Inspect.Minion.Adventure.List()
+	local adventures = Inspect.Minion.Adventure.Detail(aids)
+	for aid, adventure in pairs(adventures) do
+		if adventure.mode == "working" then
+			updateCountdown(adventure.duration)
+		end
+	end
+end
+
 ---------INIT MENU------------------------------------------------------------------------------------------------------------------
 local function menuInit(parent, settings)
 	local window = createMenu(parent, function (body, y)
@@ -301,11 +321,11 @@ local function menuInit(parent, settings)
 		
 		y = createMenuSeparator(body, y)
 		
-		y = createSubmenu(body, y, "Element voulus :", function (body, y)
+		--[[y = createSubmenu(body, y, "Element voulus :", function (body, y)
 			y = createMenuCheckbox(body, y, "-Air", settings.adventureTypeWanted, statNames[1])
 			y = createMenuCheckbox(body, y, "-Artefact", settings.adventureTypeWanted, statNames[2])
 			y = createMenuCheckbox(body, y, "-Assassinat", settings.adventureTypeWanted, statNames[3])
-			y = createMenuCheckbox(body, y, "-Death", settings.adventureTypeWanted, statNames[4])
+			y = createMenuCheckbox(body, y, "-Mort", settings.adventureTypeWanted, statNames[4])
 			y = createMenuCheckbox(body, y, "-Dimension", settings.adventureTypeWanted, statNames[5])
 			y = createMenuCheckbox(body, y, "-Diplomacy", settings.adventureTypeWanted, statNames[6])
 			y = createMenuCheckbox(body, y, "-Terre", settings.adventureTypeWanted, statNames[7])
@@ -313,24 +333,24 @@ local function menuInit(parent, settings)
 			y = createMenuCheckbox(body, y, "-Feu", settings.adventureTypeWanted, statNames[9])
 			y = createMenuCheckbox(body, y, "-Recolte", settings.adventureTypeWanted, statNames[10])
 			y = createMenuCheckbox(body, y, "-Chasse", settings.adventureTypeWanted, statNames[11])
-			y = createMenuCheckbox(body, y, "-Vue", settings.adventureTypeWanted, statNames[12])
+			y = createMenuCheckbox(body, y, "-Vie", settings.adventureTypeWanted, statNames[12])
 			y = createMenuCheckbox(body, y, "-Eau", settings.adventureTypeWanted, statNames[13])
 			return y
-		end)
+		end)]]--
 		
 		y = createSubmenu(body, y, "Element non voulus :", function (body, y)
 			y = createMenuCheckbox(body, y, "-Air", settings.adventureTypeNonWanted, statNames[1])
 			y = createMenuCheckbox(body, y, "-Artefact", settings.adventureTypeNonWanted, statNames[2])
 			y = createMenuCheckbox(body, y, "-Assassinat", settings.adventureTypeNonWanted, statNames[3])
-			y = createMenuCheckbox(body, y, "-Death", settings.adventureTypeNonWanted, statNames[4])
+			y = createMenuCheckbox(body, y, "-Mort", settings.adventureTypeNonWanted, statNames[4])
 			y = createMenuCheckbox(body, y, "-Dimension", settings.adventureTypeNonWanted, statNames[5])
-			y = createMenuCheckbox(body, y, "-Diplomacy", settings.adventureTypeNonWanted, statNames[6])
+			y = createMenuCheckbox(body, y, "-Diplomatie", settings.adventureTypeNonWanted, statNames[6])
 			y = createMenuCheckbox(body, y, "-Terre", settings.adventureTypeNonWanted, statNames[7])
 			y = createMenuCheckbox(body, y, "-Exploration", settings.adventureTypeNonWanted, statNames[8])
 			y = createMenuCheckbox(body, y, "-Feu", settings.adventureTypeNonWanted, statNames[9])
-			y = createMenuCheckbox(body, y, "-Recolte", settings.adventureTypeNonWanted, statNames[10])
+			y = createMenuCheckbox(body, y, "-Collecte", settings.adventureTypeNonWanted, statNames[10])
 			y = createMenuCheckbox(body, y, "-Chasse", settings.adventureTypeNonWanted, statNames[11])
-			y = createMenuCheckbox(body, y, "-Vue", settings.adventureTypeNonWanted, statNames[12])
+			y = createMenuCheckbox(body, y, "-Vie", settings.adventureTypeNonWanted, statNames[12])
 			y = createMenuCheckbox(body, y, "-Eau", settings.adventureTypeNonWanted, statNames[13])
 			return y
 		end)
@@ -409,7 +429,6 @@ local function createButton(context)
 		end
 	end, "buttonCursorIn")
 
-
 	frame:EventAttach(Event.UI.Input.Mouse.Cursor.Out, function (...)
 		if frame.state then
 			texture1:SetTexture("Rift", "btn_zoomout_(normal).png.dds")
@@ -447,6 +466,10 @@ local function createButton(context)
 	end, "buttonAnimate")
 
 	frame:SetEnabled(false)
+	countdownFrame = UI.CreateFrame("Text", "", frame)
+	countdownFrame:SetPoint("CENTERLEFT", frame, "CENTERRIGHT", 5, 0)
+	countdownFrame:SetFontSize(16)
+	countdownFrame:SetText("timer")
 	return frame
 end
 
@@ -529,6 +552,96 @@ end
 			---CORE----
 --#################################################################################################################################
 
+local function sbireManagerEnable(enable)
+	sbireManagerButton:SetEnabled(enable or SbireManagerGlobal.settings.hurry)
+end
+
+local function shuffleAdventure(aid, adventure)
+	if SbireManagerGlobal.settings.shuffle then
+		printText("Remaniement de l'aventure \"" .. adventure.name .. "\"", COLOR_GREEN)
+		Command.Minion.Shuffle(aid, "aventurine")
+		return true
+	end
+	return false
+end
+
+local function claimMinion(aid)
+	Command.Minion.Claim(aid)
+end
+
+local function hurryAdventure()
+	if SbireManagerGlobal.settings.hurry then
+		Command.Minion.Hurry(aid, "aventurine")
+		return true
+	end
+	return false
+end
+
+local adventureMatch = {
+	experience = function (a) return a.reward == "experience" and a.costAventurine == 0 end,
+	short = function (a) return (a.duration == 5*60 or a.duration == 15*60) and a.reward ~= "experience" and a.costAventurine == 0 end,
+	long = function (a) return a.duration == 8*60*60 and a.reward ~= "experience" and a.costAventurine == 0 end,
+	aventurine = function (a) return a.duration == 10*60*60 and a.reward ~= "experience" and a.costAventurine > 0 end
+}
+local adventureMatchAll = {
+	experience = function (a) return a.reward == "experience" and a.costAventurine == 0 end,
+	short = function (a) return a.duration < 2*60*60 and a.reward ~= "experience" and a.costAventurine == 0 end,
+	long = function (a) return a.duration >= 2*60*60 and a.reward ~= "experience" and a.costAventurine == 0 end,
+	aventurine = function (a) return a.duration >= 2*60*60 and a.reward ~= "experience" and a.costAventurine > 0 end
+}
+
+local function matchStats(adventure)
+	local adventureStat
+	for i, name in ipairs(statNames) do
+		adventureStat = adventure["stat" .. name]
+		if adventureStat then
+			if SbireManagerGlobal.settings.adventureTypeNonWanted[name] then
+				return false
+			end
+		end
+	end
+	return true
+end
+
+local function minionReady()
+	local aids = Inspect.Minion.Adventure.List()
+	
+	if aids == nil then
+		sbireManagerEnable(false)
+		return
+	end
+	
+	local adventures = Inspect.Minion.Adventure.Detail(aids)
+	local slot = Inspect.Minion.Slot()
+	for aid, adventure in pairs(adventures) do
+		if adventure.mode == "finished" then
+			sbireManagerEnable(true)
+			return
+		elseif adventure.mode == "working" then
+			slot = slot - 1
+		end
+	end
+	if slot > 0 then
+		sbireManagerEnable(true)
+		return
+	end
+	sbireManagerEnable(false)
+end
+
+local function minionReadyTimer()
+	local curentTime = Inspect.Time.Real()
+	if (curentTime >= lastRefresh + 1) then
+		local timer = math.floor(countdown - curentTime)
+		if timer < 0 then
+			if countdownFrame then countdownFrame:SetText(COLOR_RED .. "0s", true) end
+		else
+			if countdownFrame then countdownFrame:SetText(COLOR_GREEN .. tostring(timer) .. "s", true) end
+		end
+		minionReady()
+		lastRefresh = Inspect.Time.Real()
+	end
+end
+
 local function minionMatch(adventure, minion)
 	local prio = SbireManagerGlobal.settings.prio
 	local sendMin = SbireManagerGlobal.settings.sendMin
@@ -585,44 +698,6 @@ local function minionMatch(adventure, minion)
 	return minionWeight
 end
 
-local function sbireManagerEnable(enable)
-	sbireManagerButton:SetEnabled(enable or SbireManagerGlobal.settings.hurry)
-	updateEnable = Inspect.Time.Real()
-end
-
-local function minionReady()
-	local aids = Inspect.Minion.Adventure.List()
-	if aids == nil then
-		-- This can happen when logging in
-		sbireManagerEnable(false)
-		return
-	end
-	local adventures = Inspect.Minion.Adventure.Detail(aids)
-	local slot = Inspect.Minion.Slot()
-	for aid, adventure in pairs(adventures) do
-		if adventure.mode == "finished" then
-			if not sbireManagerButton:GetEnabled() then
-				printText("Aventure terminé")
-				sbireManagerEnable(true)
-			end
-			return
-		elseif adventure.mode == "working" then
-			slot = slot - 1
-		end
-	end
-	if slot > 0 then
-		sbireManagerEnable(true)
-		return
-	end
-	sbireManagerEnable(false)
-end
-
-local function minionReadyTimer()
-	if (Inspect.Time.Real() >= updateEnable + 1) then
-		minionReady()
-	end
-end
-
 local function minionSend(aid, adventure, busy)
 	local mids = Inspect.Minion.Minion.List()
 	local minions = Inspect.Minion.Minion.Detail(mids)
@@ -640,50 +715,17 @@ local function minionSend(aid, adventure, busy)
 		end
 	end
 	
-	local test
-	
 	if bestid ~= false and best > 0 then
 		if adventure.costAventurine > 0 then
 			Command.Minion.Send(bestid, aid, "aventurine")
 		else
 			Command.Minion.Send(bestid, aid, "none")
 		end
+		updateCountdown(adventure.duration)
+		printText("Envois de " .. bestminion.name, COLOR_GREEN)		
 	else
-		printText("Aucun minion compatible avec l'aventure\"" .. adventure.name .. "\" trouvé")
+		printText("Aucun minion compatible avec l'aventure\"" .. adventure.name .. "\" trouvé", COLOR_GREEN)
 	end
-end
-
-local adventureMatch = {
-	experience = function (a) return a.reward == "experience" and a.costAventurine == 0 end,
-	short = function (a) return (a.duration == 5*60 or a.duration == 15*60) and a.reward ~= "experience" and a.costAventurine == 0 end,
-	long = function (a) return a.duration == 8*60*60 and a.reward ~= "experience" and a.costAventurine == 0 end,
-	aventurine = function (a) return a.duration == 10*60*60 and a.reward ~= "experience" and a.costAventurine > 0 end
-}
-local adventureMatchAll = {
-	experience = function (a) return a.reward == "experience" and a.costAventurine == 0 end,
-	short = function (a) return a.duration < 2*60*60 and a.reward ~= "experience" and a.costAventurine == 0 end,
-	long = function (a) return a.duration >= 2*60*60 and a.reward ~= "experience" and a.costAventurine == 0 end,
-	aventurine = function (a) return a.duration >= 2*60*60 and a.reward ~= "experience" and a.costAventurine > 0 end
-}
-
-local function matchStats(adventure)
-	for i, name in ipairs(statNames) do
-		adventureStat = adventure["stat" .. name]
-		if adventureStat then
-			if SbireManagerGlobal.settings.adventureTypeNonWanted[name] then
-				return false
-			end
-		end
-	end
-	return true
-end
-
-local function shuffleAdventure(aid, adventure)
-	if SbireManagerGlobal.settings.shuffle then
-		printText("Remaniement de l'aventure \"" .. adventure.name .. "\"")
-		Command.Minion.Shuffle(aid, "aventurine")
-	end
-	printText("Aucune aventure ne correspond à vos criteres")
 end
 
 local function minionGo()
@@ -691,50 +733,48 @@ local function minionGo()
 		return
 	end
 	
+	sbireManagerEnable(false)
+	
 	local aids = Inspect.Minion.Adventure.List()
 	local adventures = Inspect.Minion.Adventure.Detail(aids)
 	local slot = Inspect.Minion.Slot()
 	local busy = {}
+	
 	for aid, adventure in pairs(adventures) do
 		if adventure.mode == "finished" then
-			printText("Récupération du sbire...")
-			Command.Minion.Claim(aid)
+			claimMinion(aid)
 			return
 		elseif adventure.mode == "working" and adventure.completion > os.time() then
-			if SbireManagerGlobal.settings.hurry then
-				Command.Minion.Hurry(aid, "aventurine")
-				return
-			end
+			if hurryAdventure() then return end
 			slot = slot - 1
 			busy[adventure.minion] = adventure
 		end
 	end
 
 	if slot <= 0 then
-		printText("Aucun slot de disponible")
+		printText("Aucun slot de disponible", COLOR_GREEN)
 		return
 	end
 
 	--on cherche une aventure
-	local match
+	local matchTime
 	if SbireManagerGlobal.settings.adventureEvent then
 		matchTime = adventureMatchAll[SbireManagerGlobal.settings.adventureTime]
 	else
 		matchTime = adventureMatch[SbireManagerGlobal.settings.adventureTime]
 	end
 	
-	local _matchStats
 	for aid, adventure in pairs(adventures) do
-		
-		if (adventure.mode == "available" and matchTime(adventure)) then
-			_matchStats = (SbireManagerGlobal.settings.adventureTime == "experience") or matchStats(adventure)
-			if (_matchStats) then
-				minionSend(aid, adventure, busy)
+		if adventure.mode == "available" then
+			if matchTime(adventure) then
+				if ((SbireManagerGlobal.settings.adventureTime == "experience") or matchStats(adventure)) then
+					minionSend(aid, adventure, busy)
+					return
+				end
+				--l'aventure ne corresponds pas en carac
+				if shuffleAdventure(aid, adventure) == false then printText("Aucune aventure ne correspond à vos criteres", COLOR_GREEN) end
 				return
 			end
-			--l'aventure ne corresponds pas en carac
-			shuffleAdventure(aid, adventure)
-			return
 		end
 	end
 end
@@ -743,33 +783,40 @@ end
 			---MAIN----------------------------------------------------------------------------------------------------------------
 --#################################################################################################################################
 
-local function init()
-	settingsInit()
+local function initUi()
 	local context = UI.CreateContext(addon.identifier)
-
+	
 	sbireManagerButton = createButton(context)
 	sbireManagerButton:SetPoint("TOPLEFT", UIParent, "TOPLEFT", SbireManagerSettings.window.x, SbireManagerSettings.window.y)
 	dragAttach(sbireManagerButton, SbireManagerSettings.window)
 	sbireManagerButton:EventAttach(Event.UI.Input.Mouse.Left.Click, minionGo, "minionGo")
-
+	
 	local sbireManagerMenu = menuInit(context, SbireManagerGlobal.settings)
 	sbireManagerMenu:SetVisible(false)
+	
 	sbireManagerButton:EventAttach(Event.UI.Input.Mouse.Right.Click, function ()
 		menuToggle(sbireManagerButton, sbireManagerMenu)
 	end, "menuRightClick");
-
+	
 	Command.Event.Attach(Event.System.Update.Begin, minionReadyTimer, "minionReadyTimer")
 	Command.Event.Attach(Event.Minion.Adventure.Change, minionReady, "minionReady")
 	Command.Event.Attach(Event.Queue.Status, minionReady, "minionReady")
+	
+end
+
+local function init()
+	settingsInit()
+	lastRefresh = Inspect.Time.Real()
+	initCountdown()
+	initUi()
 end
 
 local function main(handle, addonIdentifier)
 	if addonIdentifier ~= addon.identifier then
 		return
 	end
-	
 	init()
-	printText("Initialisation terminé (V 2.2)")
+	printText("Initialisation terminé (V2.3)", COLOR_GREEN)
 end
 
 Command.Event.Attach(Event.Addon.Load.End, main, "main")
