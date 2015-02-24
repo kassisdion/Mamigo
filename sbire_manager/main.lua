@@ -649,9 +649,9 @@ local function minionReadyTimer()
 			local endTimer = countdown - currentTime
 			if endTimer > 0 then 
 				if (endTimer > 3599) then
-					countdownFrame:SetText("  " .. COLOR_GREEN .. os.date("!%X", endTimer) .. "  ", true)
+					countdownFrame:SetText("  " .. COLOR_GREEN .. tostring(math.floor(endTimer/3600)) .. "h  ", true)
 				elseif (endTimer > 59) then
-					countdownFrame:SetText("  " .. COLOR_GREEN .. tostring(math.floor(endTimer/60)) .. "mn " .. tostring(endTimer%60) .. "s  ", true)
+					countdownFrame:SetText("  " .. COLOR_GREEN .. tostring(math.floor(endTimer/60)) .. "mn ", true)
 				else
 					countdownFrame:SetText("  " .. COLOR_GREEN .. tostring(endTimer) .. "s  ", true)
 				end
