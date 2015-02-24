@@ -291,16 +291,6 @@ end
 			---INIT
 --#################################################################################################################################		
 
-local function initCountdown()
-	local aids = Inspect.Minion.Adventure.List()
-	local adventures = Inspect.Minion.Adventure.Detail(aids)
-	for aid, adventure in pairs(adventures) do
-		if adventure.mode == "working" then
-			updateCountdown(adventure.duration)
-		end
-	end
-end
-
 ---------INIT MENU------------------------------------------------------------------------------------------------------------------
 local function menuInit(parent, settings)
 	local window = createMenu(parent, function (body, y)
@@ -556,6 +546,21 @@ local function sbireManagerEnable(enable)
 	sbireManagerButton:SetEnabled(enable or SbireManagerGlobal.settings.hurry)
 end
 
+local function initCountdown()
+	local aids = Inspect.Minion.Adventure.List()
+	if aids == nil then
+		sbireManagerEnable(false)
+		return
+	end
+	
+	local adventures = Inspect.Minion.Adventure.Detail(aids)
+	for aid, adventure in pairs(adventures) do
+		if adventure.mode == "working" then
+			updateCountdown(adventure.duration)
+		end
+	end
+end
+
 local function shuffleAdventure(aid, adventure)
 	if SbireManagerGlobal.settings.shuffle then
 		printText("Remaniement de l'aventure \"" .. adventure.name .. "\"", COLOR_GREEN)
@@ -605,7 +610,6 @@ end
 
 local function minionReady()
 	local aids = Inspect.Minion.Adventure.List()
-	
 	if aids == nil then
 		sbireManagerEnable(false)
 		return
@@ -736,6 +740,11 @@ local function minionGo()
 	sbireManagerEnable(false)
 	
 	local aids = Inspect.Minion.Adventure.List()
+	if aids == nil then
+		sbireManagerEnable(false)
+		return
+	end
+	
 	local adventures = Inspect.Minion.Adventure.Detail(aids)
 	local slot = Inspect.Minion.Slot()
 	local busy = {}
@@ -807,8 +816,8 @@ end
 local function init()
 	settingsInit()
 	lastRefresh = Inspect.Time.Real()
-	initCountdown()
 	initUi()
+	initCountdown()
 end
 
 local function main(handle, addonIdentifier)
