@@ -4,8 +4,9 @@ local DEBUG = true
 
 local sbireManagerButton = nil
 local countdown = 0
-local countdownFrame = nil
 local lastRefresh = 0
+local countdownFrame = nil
+
 
 local boxWidth = 270
 local frameHeight = 20
@@ -56,12 +57,6 @@ end
 
 local function startsWith(s, start)
 	return string.sub(s, 1, string.len(start)) == start
-end
-
-local function updateCountdown(newDuration)
-	local currentTime = Inspect.Time.Real()
-	local newCountdown = currentTime + newDuration
-	if countdown < currentTime or newCountdown < countdown then countdown = newCountdown end
 end
 
 ---------LOG-----------------------------------------------------------------------------------------------------------------------
@@ -376,6 +371,7 @@ local function menuInit(parent, settings)
 		
 		y = createMenuCheckbox(body, y, "Verouiller la fenetre", settings, "locked")
 		y = createMenuCheckbox(body, y, "Couleur \"flashy\"", settings, "highLight")
+		y = createMenuCheckbox(body, y, "Afficher le compteur", settings, "countdown")
 		
 		return y
 	end)
@@ -387,7 +383,7 @@ local function createButton(context)
 	local frame = UI.CreateFrame("Frame", "", context)
 	frame:SetWidth(32)
 	frame:SetHeight(32)
-
+	
 	local texture1 = createTexture(frame, 0, 0, 64, 64, nil, "CENTER")
 	local texture2 = createTexture(frame, 0, 0, 24, 24, nil, "CENTER")
 	texture2:SetLayer(1)
@@ -457,9 +453,12 @@ local function createButton(context)
 
 	frame:SetEnabled(false)
 	countdownFrame = UI.CreateFrame("Text", "", frame)
-	countdownFrame:SetPoint("CENTERLEFT", frame, "CENTERRIGHT", 5, 0)
+	countdownFrame:SetPoint("CENTERLEFT", frame, "CENTERRIGHT", -5, 0)
 	countdownFrame:SetFontSize(16)
 	countdownFrame:SetText("timer")
+	countdownFrame:SetBackgroundColor(0, 0, 0, 0.8)
+	countdownFrame:SetLayer(-1)
+	countdownFrame:SetVisible(SbireManagerGlobal.settings.countdown)
 	return frame
 end
 
@@ -524,6 +523,9 @@ local function settingsInit()
 	--envoyer des lvl
 	if SbireManagerGlobal.settings.sendMin == nil then SbireManagerGlobal.settings.sendMin = false end
 	
+	--afficher le countdown
+	if SbireManagerGlobal.settings.countdown == nil then SbireManagerGlobal.settings.countdown = true end
+	
 	--parametre
 	if SbireManagerGlobal.settings.highLight == nil then SbireManagerGlobal.settings.hightLight = false end
 	if SbireManagerGlobal.settings.locked == nil then SbireManagerGlobal.settings.locked = false end
@@ -544,21 +546,6 @@ end
 
 local function sbireManagerEnable(enable)
 	sbireManagerButton:SetEnabled(enable or SbireManagerGlobal.settings.hurry)
-end
-
-local function initCountdown()
-	local aids = Inspect.Minion.Adventure.List()
-	if aids == nil then
-		sbireManagerEnable(false)
-		return
-	end
-	
-	local adventures = Inspect.Minion.Adventure.Detail(aids)
-	for aid, adventure in pairs(adventures) do
-		if adventure.mode == "working" then
-			updateCountdown(adventure.duration)
-		end
-	end
 end
 
 local function shuffleAdventure(aid, adventure)
@@ -632,17 +619,48 @@ local function minionReady()
 	sbireManagerEnable(false)
 end
 
-local function minionReadyTimer()
-	local curentTime = Inspect.Time.Real()
-	if (curentTime >= lastRefresh + 1) then
-		local timer = math.floor(countdown - curentTime)
-		if timer < 0 then
-			if countdownFrame then countdownFrame:SetText(COLOR_RED .. "0s", true) end
-		else
-			if countdownFrame then countdownFrame:SetText(COLOR_GREEN .. tostring(timer) .. "s", true) end
+local function refreshCountdown(currentTime)
+	local aids = Inspect.Minion.Adventure.List()
+	if aids == nil then
+		sbireManagerEnable(false)
+		return
+	end
+	
+	local adventures = Inspect.Minion.Adventure.Detail(aids)
+	local nbAdventure = 0
+	for aid, adventure in pairs(adventures) do
+		if adventure.mode == "working" then
+			nbAdventure = nbAdventure + 1
+			local endTime = adventure.completion
+			if countdown < currentTime or endTime < countdown then countdown = endTime end
 		end
-		minionReady()
-		lastRefresh = Inspect.Time.Real()
+	end
+	if nbAdventure == 0 then countdown = 0 end
+end
+
+local function minionReadyTimer()
+	local currentTime = Inspect.Time.Server()
+	
+	if (currentTime >= lastRefresh + 1) then
+		countdownFrame:SetVisible(SbireManagerGlobal.settings.countdown)
+		
+		if SbireManagerGlobal.settings.countdown and countdownFrame then
+			refreshCountdown(currentTime)
+			local endTimer = countdown - currentTime
+			if endTimer > 0 then 
+				if (endTimer > 3599) then
+					countdownFrame:SetText("  " .. COLOR_GREEN .. os.date("!%X", endTimer) .. "  ", true)
+				elseif (endTimer > 59) then
+					countdownFrame:SetText("  " .. COLOR_GREEN .. tostring(math.floor(endTimer/60)) .. "mn " .. tostring(endTimer%60) .. "s  ", true)
+				else
+					countdownFrame:SetText("  " .. COLOR_GREEN .. tostring(endTimer) .. "s  ", true)
+				end
+			else
+				countdownFrame:SetText("  " .. COLOR_GREEN .. "  0s  ", true)
+			end
+		end
+	minionReady()
+	lastRefresh = currentTime;
 	end
 end
 
@@ -725,7 +743,6 @@ local function minionSend(aid, adventure, busy)
 		else
 			Command.Minion.Send(bestid, aid, "none")
 		end
-		updateCountdown(adventure.duration)
 		printText("Envois de " .. bestminion.name, COLOR_GREEN)		
 	else
 		printText("Aucun minion compatible avec l'aventure\"" .. adventure.name .. "\" trouvé", COLOR_GREEN)
@@ -815,9 +832,7 @@ end
 
 local function init()
 	settingsInit()
-	lastRefresh = Inspect.Time.Real()
 	initUi()
-	initCountdown()
 end
 
 local function main(handle, addonIdentifier)
