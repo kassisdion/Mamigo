@@ -364,8 +364,9 @@ local function menuInit(parent, settings)
 			return y
 		end)
 		
-		y = createMenuCheckbox(body, y, "Envoyer des lvl 1", settings, "min")
-
+		y = createMenuCheckbox(body, y, "Envoyer des lvl 1", settings, "sendMin")
+		y = createMenuCheckbox(body, y, "Envoyer des lvl 25", settings, "sendMax")
+		
 		--global settings
 		y = createMenuSeparator(body, y)
 		
@@ -520,8 +521,9 @@ local function settingsInit()
 	if SbireManagerGlobal.settings.energieMin == nil then SbireManagerGlobal.settings.energieMin = 0 end
 	if SbireManagerGlobal.settings.energieMinFilter == nil then SbireManagerGlobal.settings.energieMinFilter = false end
 	
-	--envoyer des lvl
+	--envoyer des lvl 1 / 25
 	if SbireManagerGlobal.settings.sendMin == nil then SbireManagerGlobal.settings.sendMin = false end
+	if SbireManagerGlobal.settings.sendMax == nil then SbireManagerGlobal.settings.sendMax = false end
 	
 	--afficher le countdown
 	if SbireManagerGlobal.settings.countdown == nil then SbireManagerGlobal.settings.countdown = true end
@@ -561,7 +563,7 @@ local function claimMinion(aid)
 	Command.Minion.Claim(aid)
 end
 
-local function hurryAdventure()
+local function hurryAdventure(aid)
 	if SbireManagerGlobal.settings.hurry then
 		Command.Minion.Hurry(aid, "aventurine")
 		return true
@@ -633,6 +635,9 @@ local function refreshCountdown(currentTime)
 			nbAdventure = nbAdventure + 1
 			local endTime = adventure.completion
 			if countdown < currentTime or endTime < countdown then countdown = endTime end
+		elseif adventure.mode == "finished" then
+			countdown = 0
+			return
 		end
 	end
 	if nbAdventure == 0 then countdown = 0 end
@@ -656,7 +661,7 @@ local function minionReadyTimer()
 					countdownFrame:SetText("  " .. COLOR_GREEN .. tostring(endTimer) .. "s  ", true)
 				end
 			else
-				countdownFrame:SetText("  " .. COLOR_GREEN .. "  0s  ", true)
+				countdownFrame:SetText("  " .. COLOR_RED .. "  Terminé  ", true)
 			end
 		end
 	minionReady()
@@ -667,9 +672,13 @@ end
 local function minionMatch(adventure, minion)
 	local prio = SbireManagerGlobal.settings.prio
 	local sendMin = SbireManagerGlobal.settings.sendMin
-
-	--verifier si on veux xp les sbires lvl 1
+	local sendMax = SbireManagerGlobal.settings.sendMax
+	
+	--verifier si on veux envoyerles sbires lvl 1/25
 	if not sendMin and minion.level == 1 then
+		return 0
+	end
+	if not sendMax and minion.level == 25 then
 		return 0
 	end
 	
@@ -771,7 +780,7 @@ local function minionGo()
 			claimMinion(aid)
 			return
 		elseif adventure.mode == "working" and adventure.completion > os.time() then
-			if hurryAdventure() then return end
+			if hurryAdventure(aid) then return end
 			slot = slot - 1
 			busy[adventure.minion] = adventure
 		end
