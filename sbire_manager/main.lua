@@ -327,23 +327,6 @@ local function menuInit(parent, settings)
 		
 		y = createMenuSeparator(body, y)
 		
-		--[[y = createSubmenu(body, y, "Element voulus :", function (body, y)
-			y = createMenuCheckbox(body, y, "-Air", settings.adventureTypeWanted, statNames[1])
-			y = createMenuCheckbox(body, y, "-Artefact", settings.adventureTypeWanted, statNames[2])
-			y = createMenuCheckbox(body, y, "-Assassinat", settings.adventureTypeWanted, statNames[3])
-			y = createMenuCheckbox(body, y, "-Mort", settings.adventureTypeWanted, statNames[4])
-			y = createMenuCheckbox(body, y, "-Dimension", settings.adventureTypeWanted, statNames[5])
-			y = createMenuCheckbox(body, y, "-Diplomacy", settings.adventureTypeWanted, statNames[6])
-			y = createMenuCheckbox(body, y, "-Terre", settings.adventureTypeWanted, statNames[7])
-			y = createMenuCheckbox(body, y, "-Exploration", settings.adventureTypeWanted, statNames[8])
-			y = createMenuCheckbox(body, y, "-Feu", settings.adventureTypeWanted, statNames[9])
-			y = createMenuCheckbox(body, y, "-Recolte", settings.adventureTypeWanted, statNames[10])
-			y = createMenuCheckbox(body, y, "-Chasse", settings.adventureTypeWanted, statNames[11])
-			y = createMenuCheckbox(body, y, "-Vie", settings.adventureTypeWanted, statNames[12])
-			y = createMenuCheckbox(body, y, "-Eau", settings.adventureTypeWanted, statNames[13])
-			return y
-		end)]]--
-		
 		y = createSubmenu(body, y, "Element non voulus :", function (body, y)
 			y = createMenuCheckbox(body, y, "-Air", settings.adventureTypeNonWanted, statNames[1])
 			y = createMenuCheckbox(body, y, "-Artefact", settings.adventureTypeNonWanted, statNames[2])
@@ -494,25 +477,7 @@ local function settingsInit()
 	if SbireManagerGlobal.settings.adventureTime == nil then SbireManagerGlobal.settings.adventureTime = "experience" end
 	if SbireManagerGlobal.settings.adventureEvent == nil then SbireManagerGlobal.settings.adventureEvent = true end
 	if SbireManagerGlobal.settings.hurry == nil then SbireManagerGlobal.settings.hurry = false end
-	
-	--type d'aventure voulus
-	if SbireManagerGlobal.settings.adventureTypeWanted == nil then
-		SbireManagerGlobal.settings.adventureTypeWanted = {}
-		SbireManagerGlobal.settings.adventureTypeWanted["Air"] = true
-		SbireManagerGlobal.settings.adventureTypeWanted["Artifact"] = true
-		SbireManagerGlobal.settings.adventureTypeWanted["Assassination"] = true
-		SbireManagerGlobal.settings.adventureTypeWanted["Death"] = true
-		SbireManagerGlobal.settings.adventureTypeWanted["Dimension"] = true
-		SbireManagerGlobal.settings.adventureTypeWanted["Diplomacy"] = true
-		SbireManagerGlobal.settings.adventureTypeWanted["Earth"] = true
-		SbireManagerGlobal.settings.adventureTypeWanted["Exploration"] = true
-		SbireManagerGlobal.settings.adventureTypeWanted["Fire"] = true
-		SbireManagerGlobal.settings.adventureTypeWanted["Harvest"] = true
-		SbireManagerGlobal.settings.adventureTypeWanted["Hunting"] = true
-		SbireManagerGlobal.settings.adventureTypeWanted["Life"] = true
-		SbireManagerGlobal.settings.adventureTypeWanted["Water"] = true
-	end
-	
+
 		--type d'aventure non voulus
 	if SbireManagerGlobal.settings.adventureTypeNonWanted == nil then
 		SbireManagerGlobal.settings.adventureTypeNonWanted = {}
@@ -737,7 +702,7 @@ local function minionMatch(adventure, minion)
 		if minionWeight == 0 then
 			minionWeight = 1
 		elseif minion.rarity == "common" then
-			minionWeight = minionWeight * 2 * 2
+			minionWeight = minionWeight * 2
 		elseif minion.rarity == "uncommon" then
 			minionWeight = minionWeight * 1
 		elseif minion.rarity == "rare" then
