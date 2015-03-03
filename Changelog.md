@@ -35,4 +35,4 @@ Reprise de l'addon Mamigo et :
 ##V 2.3
 - Option "Aventure voulus retiré"
 - Ajout de la frame avec le "timer"
-- 2.3.1 : Modification de la weight des sbires / Debug
+- 2.3.1 : Modification de la weight des sbires / Debug / passage en bsd
