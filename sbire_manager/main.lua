@@ -531,6 +531,33 @@ end
 --#################################################################################################################################
 			---CORE----
 --#################################################################################################################################
+local function destroyDimensionItem()
+	if not Inspect.Queue.Status("global") then
+		return nil
+	end
+
+	--TODO ajouter une variable destroyDimensionItem et la checker ici
+	
+	dimensionItem = nil
+	dimensionOption = MamigoGlobal.settings.dimension
+
+	local items = Inspect.Item.Detail(Utility.Item.Slot.Inventory())
+	if items == nil then
+		return nil
+	end
+
+	local match = "dimension"
+	local rarity = itemRarity.common
+
+	for k, v in pairs(items) do
+		if not v.lootable and startsWith(v.category, match) then
+			dimensionItem = v
+			return v
+		end
+	end
+
+	return nil
+end
 
 local function sbireManagerEnable(enable)
 	sbireManagerButton:SetEnabled(enable or SbireManagerGlobal.settings.hurry)
