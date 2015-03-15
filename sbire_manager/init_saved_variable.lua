@@ -31,7 +31,7 @@ local function init_saved_variabe()
 	if SbireManagerGlobal.settings.adventureEvent == nil then SbireManagerGlobal.settings.adventureEvent = true end
 	if SbireManagerGlobal.settings.hurry == nil then SbireManagerGlobal.settings.hurry = false end
 
-		--type d'aventure non voulus
+	--type d'aventure non voulus
 	if SbireManagerGlobal.settings.adventureTypeNonWanted == nil then
 		SbireManagerGlobal.settings.adventureTypeNonWanted = {}
 		SbireManagerGlobal.settings.adventureTypeNonWanted["Air"] = false
@@ -50,6 +50,7 @@ local function init_saved_variabe()
 	end
 	
 	if SbireManagerGlobal.settings.shuffle == nil then SbireManagerGlobal.settings.shuffle = false end
+	if SbireManagerGlobal.settings.destroyDimensionItem == nil then SbireManagerGlobal.settings.destroyDimensionItem = false end
 	
 	--priorisation
 	--energie / stats / lvl_asc / lvl_desc

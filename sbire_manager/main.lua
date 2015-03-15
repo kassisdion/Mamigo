@@ -345,6 +345,7 @@ local function menuInit(parent, settings)
 		end)
 		
 		y = createMenuCheckbox(body, y, "Remanier", settings, "shuffle")
+		y = createMenuCheckbox(body, y, "Detruire les obj de dimension", settings, "destroyDimensionItem")
 		
 		--Minion settings
 		y = createMenuSeparator(body, y)
@@ -536,21 +537,22 @@ local function destroyDimensionItem()
 		return nil
 	end
 
-	--TODO ajouter une variable destroyDimensionItem et la checker ici
+	--verifier que l'option est activé
+	print("SbireManagerGlobal.settings.destroyDimensionItem = ", SbireManagerGlobal.settings.destroyDimensionItem)
+	if not SbireManagerGlobal.settings.destroyDimensionItem then
+		return nil
+	end
 	
 	dimensionItem = nil
-	dimensionOption = MamigoGlobal.settings.dimension
 
 	local items = Inspect.Item.Detail(Utility.Item.Slot.Inventory())
 	if items == nil then
 		return nil
 	end
 
-	local match = "dimension"
-	local rarity = itemRarity.common
-
 	for k, v in pairs(items) do
-		if not v.lootable and startsWith(v.category, match) then
+		if not v.lootable and startsWith(v.category, "dimension") then
+			printDebug("Destruction de ... " .. v.name)
 			dimensionItem = v
 			return v
 		end
@@ -791,6 +793,7 @@ local function minionGo()
 	for aid, adventure in pairs(adventures) do
 		if adventure.mode == "finished" then
 			claimMinion(aid)
+			destroyDimensionItem()
 			return
 		elseif adventure.mode == "working" and adventure.completion > os.time() then
 			if hurryAdventure(aid) then return end
