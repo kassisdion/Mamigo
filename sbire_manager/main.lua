@@ -538,12 +538,9 @@ local function destroyDimensionItem()
 	end
 
 	--verifier que l'option est activé
-	print("SbireManagerGlobal.settings.destroyDimensionItem = ", SbireManagerGlobal.settings.destroyDimensionItem)
 	if not SbireManagerGlobal.settings.destroyDimensionItem then
 		return nil
 	end
-	
-	dimensionItem = nil
 
 	local items = Inspect.Item.Detail(Utility.Item.Slot.Inventory())
 	if items == nil then
@@ -552,12 +549,11 @@ local function destroyDimensionItem()
 
 	for k, v in pairs(items) do
 		if not v.lootable and startsWith(v.category, "dimension") then
-			printDebug("Destruction de ... " .. v.name)
-			dimensionItem = v
-			return v
+			printDebug("Destruction de : " .. v.name)
+			--Command.Item.Destroy(v.id)
+			return true
 		end
 	end
-
 	return nil
 end
 
@@ -779,7 +775,8 @@ local function minionGo()
 	end
 	
 	sbireManagerEnable(false)
-	
+	if destroyDimensionItem() then return end
+
 	local aids = Inspect.Minion.Adventure.List()
 	if aids == nil then
 		sbireManagerEnable(false)
@@ -793,7 +790,6 @@ local function minionGo()
 	for aid, adventure in pairs(adventures) do
 		if adventure.mode == "finished" then
 			claimMinion(aid)
-			destroyDimensionItem()
 			return
 		elseif adventure.mode == "working" and adventure.completion > os.time() then
 			if hurryAdventure(aid) then return end
@@ -833,6 +829,11 @@ end
 --#################################################################################################################################
 			---MAIN----------------------------------------------------------------------------------------------------------------
 --#################################################################################################################################
+local function slash_command(event, params)
+	printText("sbire_manager V2.3", COLOR_GREEN)
+	printText("Click droit : envoyer/récupéré un sbire", COLOR_GREEN)
+	printText("Click gauche : ouvrir/fermer le menu", COLOR_GREEN)
+end
 
 local function init()
 	local context = UI.CreateContext(addon.identifier)
@@ -849,6 +850,7 @@ local function init()
 		menuToggle(sbireManagerButton, sbireManagerMenu)
 	end, "menuRightClick");
 	
+	Command.Event.Attach(Command.Slash.Register(addon.identifier), slash_command, "slash_command")
 	Command.Event.Attach(Event.System.Update.Begin, minionReadyTimer, "minionReadyTimer")
 	Command.Event.Attach(Event.Minion.Adventure.Change, minionReady, "minionReady")
 	Command.Event.Attach(Event.Queue.Status, minionReady, "minionReady")
@@ -860,7 +862,7 @@ local function main(handle, addonIdentifier)
 		return
 	end
 	init()
-	printText("Initialisation terminé (V2.3)", COLOR_GREEN)
+	printText("Initialisation terminé", COLOR_GREEN)
 end
 
 Command.Event.Attach(Event.Addon.Load.End, main, "main")
