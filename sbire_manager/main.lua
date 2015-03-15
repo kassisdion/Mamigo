@@ -831,7 +831,7 @@ end
 			---MAIN----------------------------------------------------------------------------------------------------------------
 --#################################################################################################################################
 
-local function initUi()
+local function init()
 	local context = UI.CreateContext(addon.identifier)
 	
 	sbireManagerButton = createButton(context)
@@ -850,11 +850,6 @@ local function initUi()
 	Command.Event.Attach(Event.Minion.Adventure.Change, minionReady, "minionReady")
 	Command.Event.Attach(Event.Queue.Status, minionReady, "minionReady")
 	
-end
-
-local function init()
-	settingsInit()
-	initUi()
 end
 
 local function main(handle, addonIdentifier)
