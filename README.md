@@ -46,8 +46,7 @@
 * /!\ Ce n'est pas le doisser sbire_manager-master qu'il faut mettre dans son dossier d'adon mais le dossier Sbire_Manager contenue dans sbire_manager-master /!\
 
 ##License : 
-* L'addon est sous license bsd.
-* Globalement vous pouvez en faire ce que vous voulez la seule condition est que : si vous voulez le distribuer vous devez citer mon nom.
+* L'addon est sous MIT (cf LICENSE.TXT).
 
 ##Contact :
-* En cas de problèmes ou d'idée d'ajout, n'hésitez pas à me contacter : Ig : Kâssisdion@brisesol, a m'envoyer un mail ou a faire une pull request.
+* En cas de problèmes ou d'idée d'ajout,a m'envoyer un mail ou a faire une pull request.
