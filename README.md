@@ -2,6 +2,10 @@
 * Sbire manager est un adon qui permet de gérer (envoyer/récupérer) ses sbires de façon facile et rapide.
 * Vous sélectionnez vos préférences (temps d'aventure, type de sbire, énergie minimale, etc.) et ensuite, avec un simple click, vous pouvez envoyer vos sbires en mission ou les récupérer.
 
+#curse
+http://rift.curseforge.com/addons/sbire_manager/
+
+
 #Utilisation :
 * Click gauche (enfoncé) pour déplacer le button.
 * Click droit pour afficher/cacher les paramètres.
